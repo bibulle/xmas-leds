@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "api-interfaces": {
+      "type": "library",
+      "root": "libs/api-interfaces",
+      "entryFile": "index",
+      "sourceRoot": "libs/api-interfaces/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/api-interfaces/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
+}

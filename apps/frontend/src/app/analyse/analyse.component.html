@@ -1,0 +1,63 @@
+<div class="header">
+  <div class="buttons">
+    <button class="actionBtn plus" (click)="showConf = !showConf">{{ showConf ? '-' : '+' }}</button>
+    <button class="actionBtn" (click)="resetAnalyse()">Reset</button>
+    <button class="actionBtn" (click)="startAnalyse()" [disabled]="advancement.status !== 0">Start analyse ({{ advancement.angle ? advancement.angle : 0 }}°)</button>
+    <div *ngIf="showConf" class="input">
+      <label class="label">loadCaptureFromDisk</label>
+      <div class="filler"></div>
+      <input type="checkbox" [checked]="config.loadCaptureFromDisk" (change)="toogleLoadCaptureFromDisk()" />
+    </div>
+    <div *ngIf="showConf" class="input">
+      <label class="label">dontUseLed</label>
+      <div class="filler"></div>
+      <input type="checkbox" [checked]="config.dontUseLed" (change)="toogleDontUseLed()" />
+    </div>
+    <div *ngIf="showConf" class="input">
+      <label class="label">waitBetweenLeds</label>
+      <div class="filler"></div>
+      <input type="checkbox" [checked]="config.waitBetweenLeds" (change)="toogleWaitBetweenLeds()" />
+    </div>
+    <div *ngIf="showConf" class="input">
+      <label class="label">ledCount</label>
+      <div class="filler"></div>
+      <input class="led-count" type="number" min="2" max="100" [value]="config.ledCount" (change)="setLedCount($event)">
+    </div>
+    <div *ngIf="showConf" class="input">
+      <label class="label">dontSaveCsvToBackend</label>
+      <div class="filler"></div>
+      <input type="checkbox" [checked]="config.dontSaveCsvToBackend" (change)="toogleDontSaveCsvToBackend()" />
+    </div>
+  </div>
+  <div class="status">
+    <div class="state" *ngIf="advancement.status === 1">
+      Running <span>{{ advancement.angle ? advancement.angle : 0 }}°</span><span *ngIf="advancement.led"> : {{ advancement.led }}/{{ config.ledCount }}</span>
+    </div>
+    <div class="state" *ngIf="advancement.status === 2">
+      Calculating
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div>
+    <xmas-leds-capture *ngIf="!config.loadCaptureFromDisk"></xmas-leds-capture>
+    <div class="not-capture" *ngIf="config.loadCaptureFromDisk">
+      <img src="/assets/img/camera-off-1.svg">
+    </div>
+  </div>
+
+  <div class="capture" *ngIf="image">
+    <img [src]="image.toDataURL()" width="500" />
+  </div>
+  <!-- <div class="snapshot" *ngIf="grey">
+  <img [src]="grey.toDataURL()"/>
+</div> -->
+  <!-- <div class="snapshot" *ngIf="mask">
+  <img [src]="mask.toDataURL()"/>
+</div> -->
+  <div class="rois">
+    <div class="roi" *ngFor="let img of roiImg">
+      <img [src]="img.toDataURL()" />
+    </div>
+  </div>
+</div>

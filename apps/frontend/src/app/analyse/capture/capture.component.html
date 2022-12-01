@@ -1,0 +1,19 @@
+<div class="cam">
+  <div class="center"></div>
+  <webcam
+    [height]="500"
+    [width]="500"
+    [trigger]="triggerObservable"
+    (imageCapture)="handleImage($event)"
+    *ngIf="showWebcam"
+    [allowCameraSwitch]="true"
+    [videoOptions]="videoOptions"
+    [imageQuality]="1"
+    mirrorImage="always"
+    (initError)="handleInitError($event)"
+  ></webcam>
+</div>
+<h4 *ngIf="errors.length > 0">Messages:</h4>
+<ul *ngFor="let error of errors">
+  <li>{{ error | json }}</li>
+</ul>

@@ -1,0 +1,15 @@
+.cam {
+  position: relative;
+  overflow: hidden;
+  .center {
+    z-index: 100;
+    border-width: 0 1px;
+    border-style: dashed;
+    border-color: lightgrey;
+    position: absolute;
+    right: 48%;
+    left: 48%;
+    top: -1px;
+    bottom: 4px;
+  }
+}
