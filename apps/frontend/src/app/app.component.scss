@@ -1,0 +1,35 @@
+:host {
+  flex-grow: 1;
+  margin: 0 1em 1em 1em;
+  display: flex;
+  flex-direction: column;
+  .header {
+    display: flex;
+    position: relative;
+    line-height: 2em;
+    padding-left: 0.5em;
+    padding-bottom: 8px;
+    align-items: baseline;
+    .title {
+      font-size: 1.2em;
+      line-height: 2em;
+    }
+    .status {
+      flex-grow: 1;
+      text-align: end;
+      padding-right: 1em;
+      display: flex;
+      justify-content: flex-end;
+      .ok {
+        background-color: rgb(154, 253, 154);
+        padding-right: 0.5em;
+        padding-left: 0.5em;
+      }
+      .ko {
+        background-color: #f59393;
+        padding-right: 0.5em;
+        padding-left: 0.5em;
+      }
+    }
+  }
+}

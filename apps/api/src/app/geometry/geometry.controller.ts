@@ -1,6 +1,6 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post, Res, StreamableFile } from '@nestjs/common';
 import { ApiReturn, Point } from '@xmas-leds/api-interfaces';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 
 @Controller('')
 export class GeometryController {
@@ -51,6 +51,45 @@ export class GeometryController {
       writeFileSync(this.getFileName(), Buffer.from(csv));
 
       resolve({ ok: 'OK' });
+    });
+  }
+
+  @Get('/getPoints')
+  async getPoints(@Res({ passthrough: true }) res): Promise<StreamableFile> {
+    return new Promise<StreamableFile>((resolve) => {
+      if (!existsSync(this.getFileName())) {
+        throw new HttpException('Capture not found', HttpStatus.NOT_FOUND);
+      }
+
+      const file = createReadStream(this.getFileName());
+      res.set({
+        'Content-Type': 'image/jpg',
+      });
+      resolve(new StreamableFile(file));
+    });
+  }
+
+  @Get('/getPointsJson')
+  async getPointsJson(): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve) => {
+      if (!existsSync(this.getFileName())) {
+        throw new HttpException('Capture not found', HttpStatus.NOT_FOUND);
+      }
+
+      const points: Point[] = [];
+      const content = readFileSync(this.getFileName()).toString();
+      content.split(/\r?\n/).forEach((line, index) => {
+        if (index > 0) {
+          // console.log(line);
+          const values = line.split(/,/);
+          if (values.length != 4) {
+            throw new HttpException(`File format not correct (line ${index})`, HttpStatus.INTERNAL_SERVER_ERROR);
+          }
+          points.push(new Point(+values[1], +values[2], +values[3]));
+        }
+      });
+
+      resolve({ points: points });
     });
   }
 

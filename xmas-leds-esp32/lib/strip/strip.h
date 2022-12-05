@@ -1,7 +1,7 @@
 
 #include <NeoPixelBus.h>
 
-const uint16_t PixelCount = 50;
+const uint16_t PixelCount = 100;
 const uint8_t PixelPin = GPIO_NUM_15;
 
 #define colorSaturation 32

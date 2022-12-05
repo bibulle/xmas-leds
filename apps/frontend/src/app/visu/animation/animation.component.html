@@ -1,0 +1,31 @@
+<div class="buttons">
+  <div class="button-line" *ngFor="let anim of animations">
+    <span class="label">{{ anim.titre | titlecase }}</span>
+    <button *ngIf="anim.calculate && anim.existOnBackend" (click)="anim.calculate(points)">Regenerate</button>
+    <button *ngIf="anim.calculate && !anim.existOnBackend" (click)="anim.calculate(points)">Generate</button>
+    <div   *ngIf="!anim.calculate" class="filler"></div>
+    <button *ngIf="anim.lines.length !== 0" (click)="anim.sendAnimToTree()">Mimic on tree</button>
+    <div   *ngIf="!anim.lines.length" class="filler"></div>
+    <button *ngIf="anim.lines.length !== 0" (click)="anim.saveFileToBackend()">Save to server</button>
+    <div   *ngIf="!anim.lines.length" class="filler"></div>
+    <button *ngIf="anim.existOnBackend" (click)="anim.deleteFileFromBackend()">Delete from server</button>
+    <div   *ngIf="!anim.existOnBackend" class="filler"></div>
+    <button *ngIf="anim.existOnBackend" (click)="anim.pushToTree()">Push to tree</button>
+    <div   *ngIf="!anim.existOnBackend" class="filler"></div>
+    <button *ngIf="anim.existOnTree" (click)="anim.deleteFromTree()">Delete from tree</button>
+    <div   *ngIf="!anim.existOnTree" class="filler"></div>
+    <button *ngIf="anim.existOnTree" (click)="anim.execOnTree()">Exdec on tree</button>
+    <div   *ngIf="!anim.existOnTree" class="filler"></div>
+  </div>
+</div>
+<!-- <div class="file">
+  <div class="line" *ngFor="let line of lines">
+    <div class="duration">{{ line.duration }}</div>
+    <div class="leds">
+      <div class="led" *ngFor="let led of line.leds; let isFirst = first">
+        <span *ngIf="!isFirst">, </span>
+        <div [style]="'background-color: rgba(' + led.r + ',' + led.g + ',' + led.b + ',0.2);'">{{ led.index }} {{ led.r }} {{ led.g }} {{ led.b }}</div>
+      </div>
+    </div>
+  </div>
+</div> -->

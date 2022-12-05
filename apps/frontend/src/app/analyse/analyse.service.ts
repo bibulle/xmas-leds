@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Advancement, ApiReturn, MyRoi, Point, Status } from '@xmas-leds/api-interfaces';
+import { Advancement, MyRoi, Point, Status } from '@xmas-leds/api-interfaces';
 import { Image } from 'image-js';
 import { BehaviorSubject, concatMap, filter, lastValueFrom, Observable, of, range, Subject, takeUntil, toArray } from 'rxjs';
 import { ConfigService } from '../config.service';
+import { LedsService } from '../leds/leds.service';
+import { PointsService } from '../points/points.service';
 import { CaptureService } from './capture/capture.service';
-import { LedsService } from './leds/leds.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +19,12 @@ export class AnalyseService {
   private imageWidth = NaN;
   private rois: any[][] = [[], [], [], []];
 
-  constructor(private captureService: CaptureService, private ledsService: LedsService, private configService: ConfigService, private httpClient: HttpClient) {}
+  constructor(
+    private captureService: CaptureService, 
+    private ledsService: LedsService, 
+    private configService: ConfigService, 
+    private pointsService: PointsService
+    ) {}
 
   async resetAnalyse() {
     this.avancementTrigger.next(new Advancement());
@@ -98,7 +103,8 @@ export class AnalyseService {
       console.log(points);
 
       if (!this.configService.isDontSaveCsvToBackend()) {
-        this.sendPointsToBackend(points)
+        this.pointsService
+          .sendPointsToBackend(points)
           .then((s) => {
             console.log(s);
             this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
@@ -107,7 +113,7 @@ export class AnalyseService {
             console.error(reason);
           });
       } else {
-        console.log("We do not save points");
+        console.log('We do not save points');
         this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
       }
     }
@@ -283,31 +289,6 @@ export class AnalyseService {
   }
   avancementObservableWaiting(): Observable<Advancement> {
     return this.avancementTrigger.asObservable().pipe(filter((av) => av.status === Status.WAITING));
-  }
-  sendPointsToBackend(points: Point[]): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      const body = { points: points };
-      this.httpClient
-        .post<ApiReturn>(`/api/savePoints`, body, {
-          headers: new HttpHeaders({
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          }),
-        })
-        .subscribe({
-          next: (data) => {
-            if (data && data.ok) {
-              resolve(data.ok);
-            } else {
-              console.error(data);
-              reject('Cannot save Points');
-            }
-          },
-          error: (error) => {
-            reject(error);
-          },
-        });
-    });
   }
 }
 

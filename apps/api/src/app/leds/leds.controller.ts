@@ -1,15 +1,30 @@
 import { HttpService } from '@nestjs/axios';
 import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post } from '@nestjs/common';
-import { ApiReturn } from '@xmas-leds/api-interfaces';
-
+import { ApiReturn, Led } from '@xmas-leds/api-interfaces';
+import { LedsService } from './leds.service';
 
 @Controller('leds')
 export class LedsController {
   readonly logger = new Logger(LedsController.name);
 
-    private readonly LEDS_IP="192.168.1.31"
+  constructor(private httpService: HttpService, private ledsService: LedsService) {}
 
-    constructor(private httpService: HttpService) {}
+  // ====================================
+  // route geztting status of ESP
+  // ====================================
+  @Get('/getStatus')
+  async getLedStatus(): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .getStatus()
+        .then((s) => {
+          resolve({ status: s });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
+    });
+  }
 
   // ====================================
   // route for switch off all leds
@@ -17,41 +32,35 @@ export class LedsController {
   @Get('/clear')
   async clearLeds(): Promise<ApiReturn> {
     return new Promise<ApiReturn>((resolve, reject) => {
-      this.httpService.get<ApiReturn>(`http://${this.LEDS_IP}/strip/clear`, {timeout: 4000}).subscribe({
-        next: () => {
-          resolve({ok: "Led off"});
-        },
-        error: (error) => {
-          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
-          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR))
-        },
-      });
+      this.ledsService
+        .clearStrip()
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
     });
   }
 
-   // ====================================
+  // ====================================
   // route for change on some leds
   // ====================================
   @Post('/change')
-  async changeLeds(@Body('leds') leds: string): Promise<ApiReturn> {
+  async changeLeds(@Body('leds') leds: Led[]): Promise<ApiReturn> {
     return new Promise<ApiReturn>((resolve, reject) => {
-
       if (!leds) {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
 
-      const body= `leds=${leds}`;
-
-      this.httpService.post<ApiReturn>(`http://${this.LEDS_IP}/strip/change`, body, {timeout: 4000}).subscribe({
-        next: () => {
-          resolve({ok: "Led changed"});
-        },
-        error: (error) => {
-          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);    
-          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR))
-        },
-      });
+      this.ledsService
+        .changeStrip(leds)
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
     });
   }
-
 }

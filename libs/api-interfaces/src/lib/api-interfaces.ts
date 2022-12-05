@@ -6,6 +6,9 @@ import { Image } from 'image-js';
  */
 export class ApiReturn {
   ok?: string;
+  points?: Point[];
+  status?: LedsStatus;
+  animations?: string[];
   // id_token?: string;
   // version?: Version;
   // user?: UserAPI;
@@ -35,7 +38,7 @@ export class Advancement {
 export enum Status {
   WAITING,
   GETTING_LED,
-  CALCULATING
+  CALCULATING,
 }
 
 export class MyRoi {
@@ -56,21 +59,57 @@ export class MyRoi {
   }
 }
 
-export class Config{
+export class Config {
   loadCaptureFromDisk = false;
-   dontUseLed = false;
-   waitBetweenLeds = false;
-   ledCount = 50;
-   dontSaveCsvToBackend=false;
+  dontUseLed = false;
+  waitBetweenLeds = false;
+  ledCount = 50;
+  dontSaveCsvToBackend = false;
 }
 
 export class Point {
-  x:number;
-  y:number;
-  z:number;
-  constructor(x:number,y:number,z:number) {
+  x: number;
+  y: number;
+  z: number;
+  constructor(x: number, y: number, z: number) {
     this.x = x;
     this.y = y;
-    this.z =z;
+    this.z = z;
   }
+}
+
+export class Led {
+  index = 0;
+  r = 0;
+  g = 0;
+  b = 0;
+}
+export class Line {
+  duration = 0;
+  leds: Led[] = [];
+}
+
+export class LedsStatus {
+  up?: number;
+  heapSize?: number;
+  heapFree?: number;
+  heapMin?: number;
+  heapMax?: number;
+  totalBytes?: number;
+  usedBytes?: number;
+}
+
+export interface LedAnimation {
+  titre : string;
+  existOnBackend:boolean;
+  existOnTree:boolean;
+  lines: Line[];
+
+  calculate : ((points: Point[]) => void) | undefined;
+  sendAnimToTree():void;
+  saveFileToBackend():void;
+  deleteFileFromBackend():void
+  pushToTree():void;
+  deleteFromTree():void
+  execOnTree():void;
 }

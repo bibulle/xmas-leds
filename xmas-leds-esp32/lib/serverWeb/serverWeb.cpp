@@ -11,16 +11,16 @@ File fsUploadFile;
 
 /**
  * send bad request
-*/
-void sendBadRequest(WebServer *server, const char* format, ...) {
-    char msg[100];
-    
-    va_list arglist;
-    va_start( arglist, format );
-    vsprintf(msg, format, arglist );
-    va_end( arglist );
+ */
+void sendBadRequest(WebServer* server, const char* format, ...) {
+  char msg[100];
 
-    server->send(400, "text/plain", msg);
+  va_list arglist;
+  va_start(arglist, format);
+  vsprintf(msg, format, arglist);
+  va_end(arglist);
+
+  server->send(400, "text/plain", msg);
 }
 /**
  * Get content type by file
@@ -69,6 +69,42 @@ bool exists(String path) {
   return yes;
 }
 /**
+ * Get dir list
+ */
+void handleFileList() {
+  if (!server.hasArg("dir")) {
+    server.send(500, "text/plain", "BAD ARGS");
+    return;
+  }
+
+  String path = server.arg("dir");
+  Serial.println("handleFileList: " + path);
+
+
+  File root = LittleFS.open(path);
+  path = String();
+
+  String output = "[";
+  if(root.isDirectory()){
+      File file = root.openNextFile();
+      while(file){
+          if (output != "[") {
+            output += ',';
+          }
+          output += "{\"type\":\"";
+          output += (file.isDirectory()) ? "dir" : "file";
+          output += "\",\"name\":\"";
+          output += String(file.path()).substring(1);
+          output += "\",\"size\":\"";
+          output += String(file.size());
+          output += "\"}";
+          file = root.openNextFile();
+      }
+  }
+  output += "]";
+  server.send(200, "text/json", output);
+}
+/**
  * Send file to server (for the client)
  */
 bool handleFileRead(String path) {
@@ -100,7 +136,65 @@ bool handleFileRead(String path) {
   }
   return false;
 }
+/**
+ * Receive animation  (from the client)
+ */
+void handleFileUpload() {
+  HTTPUpload& upload = server.upload();
+  Serial.println(upload.filename);
+  Serial.println(upload.status);
+  Serial.println(upload.name);
+  Serial.println(upload.type);
+  if (upload.status == UPLOAD_FILE_START) {
+    String filename = upload.filename;
+    if (!filename.startsWith("/")) {
+      filename = "/" + filename;
+    }
+    filename = "/animations" + filename;
+    Serial.print("handleFileUpload Name: ");
+    Serial.println(filename);
+    fsUploadFile = LittleFS.open(filename, "w");
+    Serial.println(fsUploadFile);
 
+    filename = String();
+  } else if (upload.status == UPLOAD_FILE_WRITE) {
+    Serial.print("handleFileUpload Data: ");
+    Serial.println(upload.currentSize);
+    if (fsUploadFile) {
+      fsUploadFile.write(upload.buf, upload.currentSize);
+    }
+  } else if (upload.status == UPLOAD_FILE_END) {
+    if (fsUploadFile) {
+      fsUploadFile.close();
+    }
+    Serial.print("handleFileUpload Size: ");
+    Serial.println(upload.totalSize);
+    server.send(200, "text/plain", "Ok");
+  }
+}
+/**
+ * Delete animation from the strips
+ */
+void handleFileDelete() {
+  if (server.args() == 0) {
+    return server.send(500, "text/plain", "BAD ARGS");
+  }
+  String path = server.arg(0);
+  if (!path.startsWith("/")) {
+    path = "/" + path;
+  }
+  path = "/animations" + path;
+  Serial.println("handleFileDelete: " + path);
+  if (path == "/") {
+    return server.send(500, "text/plain", "BAD PATH");
+  }
+  if (!exists(path)) {
+    return server.send(404, "text/plain", "FileNotFound");
+  }
+  LittleFS.remove(path);
+  server.send(200, "text/plain", "");
+  path = String();
+}
 /**
  * Handle strip clear
  */
@@ -197,6 +291,28 @@ void handleStripChange() {
   server.send(200, "text/plain", "Ok");
 }
 
+/**
+ * handleGetStatus
+ */
+void handleGetStatus() {
+  String payload = "";
+  payload += "{\"up\":";
+  payload += String(millis());
+  payload += ",\"heapSize\":";
+  payload += String(ESP.getHeapSize());
+  payload += ",\"heapFree\":";
+  payload += String(ESP.getFreeHeap());
+  payload += ",\"heapMin\":";
+  payload += String(ESP.getMinFreeHeap());
+  payload += ",\"heapMax\":";
+  payload += String(ESP.getMaxAllocHeap());
+  payload += ",\"totalBytes\":";
+  payload += String(LittleFS.totalBytes());
+  payload += ",\"usedBytes\":";
+  payload += String(LittleFS.usedBytes());
+  payload += "}";
+  server.send(200, "text/json", payload);
+}
 
 /**
  * --------------------
@@ -204,10 +320,19 @@ void handleStripChange() {
  * --------------------
  */
 void initServerWeb(void) {
+  LittleFS.mkdir("/animations");
+
   // manage the uri to change leds
+  server.on("/list", handleFileList);
   server.on("/strip/clear", handleStripClear);
   server.on("/strip/set", handleStripSet);
   server.on("/strip/change", handleStripChange);
+  server.on("/getStatus", handleGetStatus);
+  server.on(
+      "/upload", HTTP_POST, []() {
+        server.send(200, "text/plain", "");
+      },
+      handleFileUpload);
 
   // called when the url is not defined here
   // use it to load content from FILESYSTEM

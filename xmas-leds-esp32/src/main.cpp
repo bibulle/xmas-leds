@@ -1,6 +1,8 @@
 
 #include <Arduino.h>
 
+// FLASH_MAP_SETUP_CONFIG(FLASH_MAP_MAX_FS);
+
 #include "localFS.h"
 #include "strip.h"
 #include "wifiCommunication.h"

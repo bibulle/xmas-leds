@@ -36,15 +36,16 @@ void localFS_setup() {
     }
   }
 
-  {
-      File root = FileFS.open("/");
-      File file = root.openNextFile();
-      while(file){
-          String fileName = file.name();
-          size_t fileSize = file.size();
-          Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
-          file = root.openNextFile();
-      }
-      Serial.printf("\n");
-  }
+  // {
+  //     File root = FileFS.open("/");
+  //     File file = root.openNextFile();
+  //     while(file){
+  //         String fileName = file.name();
+  //         size_t fileSize = file.size();
+  //         boolean isDir = file.isDirectory();
+  //         Serial.printf("FS File: %s, isDir: %s, size: %s\n", fileName.c_str(), isDir ? "true" : "false", formatBytes(fileSize).c_str());
+  //         file = root.openNextFile();
+  //     }
+  //     Serial.printf("\n");
+  // }
 }

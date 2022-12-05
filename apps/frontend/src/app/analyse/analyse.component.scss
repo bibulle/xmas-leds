@@ -1,3 +1,6 @@
+:host {
+  position: relative;
+}
 .header {
   display: flex;
   justify-content: space-around;
@@ -12,8 +15,11 @@
     padding-left: 1.5em;
     .plus {
       position: absolute;
-      left: 0.1em;
-      top: 0.1em;
+      left: -0.2em;
+      top: 0;
+    }
+    button {
+      margin-bottom: 0.2em;
     }
     .input {
       display: flex;
@@ -27,7 +33,8 @@
         padding-top: 0;
         padding-bottom: 0;
         height: 1.2em;
-        align-self: center;      }
+        align-self: center;
+      }
     }
   }
   .status {
@@ -43,7 +50,7 @@
   }
   .not-capture {
     width: 500px;
-    height: 281px;  
+    height: 281px;
     padding-right: 0.2em;
     padding-left: 0.2em;
     background-color: lightgrey;

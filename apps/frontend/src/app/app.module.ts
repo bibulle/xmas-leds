@@ -7,6 +7,7 @@ import { appRoutes } from './app.routes';
 import { NotFoundModule } from './not-found/not-found.module';
 import { AnalyseModule } from './analyse/analyse.module';
 import { HttpClientModule } from '@angular/common/http';
+import { VisuModule } from './visu/visu.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +17,7 @@ import { HttpClientModule } from '@angular/common/http';
     RouterModule.forRoot(appRoutes, { initialNavigation: 'enabledBlocking' }),
     NotFoundModule,
     AnalyseModule,
+    VisuModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
