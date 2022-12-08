@@ -82,15 +82,17 @@ export class AnalyseService {
 
       // calculate max and min X and Y
       const max = points.reduce((m, p) => {
-        m.x = m.x > p.x ? m.x : p.x;
-        m.y = m.y > p.y ? m.y : p.y;
-        m.z = m.z > p.z ? m.z : p.z;
+        m.x = Number.isNaN(p.x) ? m.x : m.x > p.x ? m.x : p.x;
+        m.y = Number.isNaN(p.y) ? m.y : m.y > p.y ? m.y : p.y;
+        m.z = Number.isNaN(p.z) ? m.z : m.z > p.z ? m.z : p.z;
         return m;
       }, new Point(-Infinity, -Infinity, -Infinity));
       const min = points.reduce((m, p) => {
-        m.x = m.x < p.x ? m.x : p.x;
-        m.y = m.y < p.y ? m.y : p.y;
-        m.z = m.z < p.z ? m.z : p.z;
+        console.log(`${m.x} ${p.x}`);
+        m.x = Number.isNaN(p.x) ? m.x : m.x < p.x ? m.x : p.x;
+        m.y = Number.isNaN(p.y) ? m.y : m.y < p.y ? m.y : p.y;
+        m.z = Number.isNaN(p.z) ? m.z : m.z < p.z ? m.z : p.z;
+        console.log(`${m.x} ${p.x}`);
         return m;
       }, new Point(Infinity, Infinity, Infinity));
       console.log(JSON.stringify(points,null,2));
