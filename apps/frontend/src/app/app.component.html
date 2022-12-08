@@ -1,8 +1,6 @@
 <div class="header">
   <div class="title">Xmax-leds</div>
-  <div class="status">
-    <span *ngIf="ledStatus" class="ok">Led connected<span> (free : {{freeBytes}})</span></span>
-    <span *ngIf="!ledStatus" class="ko">Led not connected</span>
-  </div>
+  <xmas-leds-status></xmas-leds-status>
 </div>
 <router-outlet></router-outlet>
+<xmas-leds-notification></xmas-leds-notification>

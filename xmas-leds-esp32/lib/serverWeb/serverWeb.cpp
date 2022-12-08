@@ -80,26 +80,25 @@ void handleFileList() {
   String path = server.arg("dir");
   Serial.println("handleFileList: " + path);
 
-
   File root = LittleFS.open(path);
   path = String();
 
   String output = "[";
-  if(root.isDirectory()){
-      File file = root.openNextFile();
-      while(file){
-          if (output != "[") {
-            output += ',';
-          }
-          output += "{\"type\":\"";
-          output += (file.isDirectory()) ? "dir" : "file";
-          output += "\",\"name\":\"";
-          output += String(file.path()).substring(1);
-          output += "\",\"size\":\"";
-          output += String(file.size());
-          output += "\"}";
-          file = root.openNextFile();
+  if (root.isDirectory()) {
+    File file = root.openNextFile();
+    while (file) {
+      if (output != "[") {
+        output += ',';
       }
+      output += "{\"type\":\"";
+      output += (file.isDirectory()) ? "dir" : "file";
+      output += "\",\"name\":\"";
+      output += String(file.path()).substring(1);
+      output += "\",\"size\":\"";
+      output += String(file.size());
+      output += "\"}";
+      file = root.openNextFile();
+    }
   }
   output += "]";
   server.send(200, "text/json", output);
@@ -141,10 +140,6 @@ bool handleFileRead(String path) {
  */
 void handleFileUpload() {
   HTTPUpload& upload = server.upload();
-  Serial.println(upload.filename);
-  Serial.println(upload.status);
-  Serial.println(upload.name);
-  Serial.println(upload.type);
   if (upload.status == UPLOAD_FILE_START) {
     String filename = upload.filename;
     if (!filename.startsWith("/")) {
@@ -154,12 +149,12 @@ void handleFileUpload() {
     Serial.print("handleFileUpload Name: ");
     Serial.println(filename);
     fsUploadFile = LittleFS.open(filename, "w");
-    Serial.println(fsUploadFile);
+    // Serial.println(fsUploadFile);
 
     filename = String();
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    Serial.print("handleFileUpload Data: ");
-    Serial.println(upload.currentSize);
+    // Serial.print("handleFileUpload Data: ");
+    // Serial.println(upload.currentSize);
     if (fsUploadFile) {
       fsUploadFile.write(upload.buf, upload.currentSize);
     }
@@ -182,6 +177,9 @@ void handleFileDelete() {
   String path = server.arg(0);
   if (!path.startsWith("/")) {
     path = "/" + path;
+  }
+  if (!path.endsWith(".csv")) {
+    path = path + ".csv";
   }
   path = "/animations" + path;
   Serial.println("handleFileDelete: " + path);
@@ -290,7 +288,6 @@ void handleStripChange() {
   showStrip();
   server.send(200, "text/plain", "Ok");
 }
-
 /**
  * handleGetStatus
  */
@@ -310,10 +307,43 @@ void handleGetStatus() {
   payload += String(LittleFS.totalBytes());
   payload += ",\"usedBytes\":";
   payload += String(LittleFS.usedBytes());
+  payload += ",\"animOn\":";
+  payload += !isStopAnimation();
   payload += "}";
   server.send(200, "text/json", payload);
 }
+/**
+ * hange exec an animation
+ */
+void handleExecAnim() {
+  if (!server.hasArg("name")) {
+    server.send(500, "text/plain", "BAD ARGS");
+    return;
+  }
 
+  String animation = server.arg("name");
+  Serial.println("handleExecAnim: " + animation);
+
+  String path = "/animations/" + animation + ".csv";
+  if (!exists(path)) {
+    return server.send(404, "text/plain", "FileNotFound");
+  }
+
+  startAnim(path);
+
+  server.send(200, "text/plain", "Started");
+}
+/**
+ * hange stop/start animations
+ */
+void handleAnimStop() {
+  toggleStopAnimation(true);
+  server.send(200, "text/plain", "Stopped");
+}
+void handleAnimStart() {
+  toggleStopAnimation(false);
+  server.send(200, "text/plain", "Started");
+}
 /**
  * --------------------
  * Init the web server
@@ -328,11 +358,15 @@ void initServerWeb(void) {
   server.on("/strip/set", handleStripSet);
   server.on("/strip/change", handleStripChange);
   server.on("/getStatus", handleGetStatus);
+  server.on("/anim/stop", handleAnimStop);
+  server.on("/anim/start", handleAnimStart);
   server.on(
       "/upload", HTTP_POST, []() {
         server.send(200, "text/plain", "");
       },
       handleFileUpload);
+  server.on("/anim", HTTP_DELETE, handleFileDelete);
+  server.on("/anim/exec", handleExecAnim);
 
   // called when the url is not defined here
   // use it to load content from FILESYSTEM

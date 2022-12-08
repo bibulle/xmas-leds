@@ -1,16 +1,25 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ApiReturn, LedAnimation } from '@xmas-leds/api-interfaces';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'fs';
 import { LedsService } from '../leds/leds.service';
+import { FileInterceptor, MulterModule } from '@nestjs/platform-express';
+import { Express } from 'express';
+import 'multer';
+import { createBrotliCompress } from 'zlib';
+import { diskStorage } from 'multer';
 
 @Controller('anim')
 export class AnimationController {
   readonly logger = new Logger(AnimationController.name);
 
-  constructor(private ledsService: LedsService) {}
+  constructor(private ledsService: LedsService) {
+    // MulterModule.register({
+    //   dest: './upload',
+    // });
+  }
 
   // ====================================
-  // route to save animation files
+  // route to save animation files to the backend
   // ====================================
   @Post('/save')
   async saveAnim(@Body('anim') anim: LedAnimation): Promise<ApiReturn> {
@@ -62,11 +71,81 @@ export class AnimationController {
   }
 
   // ====================================
-  // Route to push file to strips
+  // route to upload animation files to the backend
   // ====================================
-  @Get('push/:name')
+  @Post('/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage( {
+        destination: './data/animations/',
+        filename: (req, file, callback) => {
+          callback(null, file.originalname);
+        }
+      })
+    })
+  )
+  async uploadAnim(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 }), new FileTypeValidator({ fileType: 'csv' })],
+      })
+    )
+    file: Express.Multer.File
+  ): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve) => {
+      this.logger.log(`save file to '${file.path}'`);
+      resolve({ ok: 'OK' });
+    });
+  }
+
+  // ====================================
+  // route to delete animation files from backend
+  // ====================================
+  @Delete(':name')
+  async deleteAnim(@Param('name') name: string): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve) => {
+      if (!name) {
+        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      }
+
+      const fileName = this.getFileName(name);
+
+      if (!existsSync(fileName)) {
+        throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
+      }
+
+      unlinkSync(fileName);
+
+      resolve({ ok: 'OK' });
+    });
+  }
+
+  // ====================================
+  // Route to get all already stored anim in the backend
+  // ====================================
+  @Get('')
+  async getFiles(): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve) => {
+      const lst = readdirSync('data/animations')
+        .filter((f) => f.endsWith('.csv'))
+        .map((f) => f.slice(0, -4));
+
+      // this.logger.log(lst);
+
+      resolve({ animations: lst });
+    });
+  }
+
+  // ====================================
+  // Route to push file to strips (from backend)
+  // ====================================
+  @Get('leds/push/:name')
   async sendAnimToTree(@Param('name') name: string): Promise<ApiReturn> {
     return new Promise<ApiReturn>((resolve, reject) => {
+      if (!name) {
+        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      }
+
       const fileName = this.getFileName(name);
 
       this.ledsService
@@ -81,21 +160,101 @@ export class AnimationController {
   }
 
   // ====================================
-  // Route to get all already stored anim
+  // Route to get all already stored anim in the led strips
   // ====================================
-  @Get('')
-  async getFiles(): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve) => {
-      const lst = readdirSync('data/animations')
-        .filter((f) => f.endsWith('.csv'))
-        .map((f) => f.slice(0, -4));
-
-      this.logger.log(lst);
-
-      resolve({ animations: lst });
+  @Get('leds')
+  async getAnimsFromStrip(): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .getAnimsFromStrip()
+        .then((m) => {
+          resolve({ animations: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
     });
   }
 
+  // ====================================
+  // route to delete animation files from strip
+  // ====================================
+  @Delete('/leds/:name')
+  async deleteAnimFromStrip(@Param('name') name: string): Promise<ApiReturn> {
+    if (!name) {
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .deleteFromStrip(name)
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
+    });
+  }
+
+  // ====================================
+  // route to exec animation on strip
+  // ====================================
+  @Get('/leds/exec/:name')
+  async execAnimOnStrip(@Param('name') name: string): Promise<ApiReturn> {
+    if (!name) {
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .execOnStrip(name)
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
+    });
+  }
+
+  // ====================================
+  // route to stop animations on strip
+  // ====================================
+  @Get('/stop')
+  async stopAnims(): Promise<ApiReturn> {
+    // this.logger.log("stopAnims");
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .stopAnims()
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
+    });
+  }
+
+  // ====================================
+  // route to start animations on strip
+  // ====================================
+  @Get('/start')
+  async startAnims(): Promise<ApiReturn> {
+    // this.logger.log("startAnims");
+    return new Promise<ApiReturn>((resolve, reject) => {
+      this.ledsService
+        .startAnims()
+        .then((m) => {
+          resolve({ ok: m });
+        })
+        .catch((reason) => {
+          reject(reason);
+        });
+    });
+  }
+
+  // methode to get filename in the backend from an ani name
   getFileName(name: string, id: number = undefined): string {
     if (!id) {
       return `data/animations/${name}.csv`;

@@ -8,7 +8,7 @@ import { existsSync, readFileSync } from 'fs';
 export class LedsService {
   readonly logger = new Logger(LedsService.name);
 
-  private readonly LEDS_IP = '192.168.1.31';
+  private readonly LEDS_IP = '192.168.0.129:85';
 
   constructor(private httpService: HttpService) {}
 
@@ -16,6 +16,7 @@ export class LedsService {
     return new Promise<LedsStatus>((resolve, reject) => {
       this.httpService.get(`http://${this.LEDS_IP}/getStatus`, { timeout: 4000 }).subscribe({
         next: (response) => {
+          response.data.animOn = response.data.animOn ? true : false;
           resolve(response.data);
         },
         error: (error) => {
@@ -43,9 +44,14 @@ export class LedsService {
   changeStrip(leds: Led[]): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       let body = `leds=`;
-      leds.forEach((l, index) => {
-        body += `${index == 0 ? '' : ', '}${l.index} ${l.r} ${l.g} ${l.b}`;
-      });
+      this.logger.log(leds);
+      if (typeof leds === 'string') {
+        body += leds;
+      } else {
+        leds.forEach((l, index) => {
+          body += `${index == 0 ? '' : ', '}${l.index} ${l.r} ${l.g} ${l.b}`;
+        });
+      }
       console.log(body);
 
       this.httpService.post<string>(`http://${this.LEDS_IP}/strip/change`, body, { timeout: 4000 }).subscribe({
@@ -80,16 +86,15 @@ export class LedsService {
 
       const options = {
         method: 'POST',
-        url: 'http://192.168.1.31/upload',
+        url: `http://${this.LEDS_IP}/upload`,
         headers: {
           Accept: '*/*',
           'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
           'content-type': 'multipart/form-data; boundary=---011000010111000001101001',
-          'Keep-Alive': 'timeout=10 , max=1000'
-
+          'Keep-Alive': 'timeout=10 , max=1000',
         },
         data: content,
-        timeout: 12000
+        timeout: 12000,
       };
 
       this.httpService.request(options).subscribe({
@@ -153,4 +158,89 @@ export class LedsService {
       // });
     });
   }
+
+  deleteFromStrip(name: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      this.logger.log(name);
+
+      this.httpService.delete<string>(`http://${this.LEDS_IP}/anim?name=${encodeURIComponent(name)}`, { timeout: 4000 }).subscribe({
+        next: () => {
+          resolve('Anim deleted');
+        },
+        error: (error) => {
+          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+        },
+      });
+    });
+  }
+
+  execOnStrip(name: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      this.logger.log(name);
+
+      this.httpService.get<string>(`http://${this.LEDS_IP}/anim/exec?name=${encodeURIComponent(name)}`, { timeout: 4000 }).subscribe({
+        next: () => {
+          resolve('Anim executed');
+        },
+        error: (error) => {
+          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+        },
+      });
+    });
+  }
+
+  getAnimsFromStrip(): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      this.httpService.get<AnimationFile[]>(`http://${this.LEDS_IP}/list?dir=/animations`, { timeout: 4000 }).subscribe({
+        next: (response) => {
+          resolve(
+            response.data
+              .filter((af) => af.name.endsWith('.csv'))
+              .map((af) => {
+                return af.name.replace(/^animations\//, '').replace(/[.]csv$/, '');
+              })
+          );
+        },
+        error: (error) => {
+          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+        },
+      });
+    });
+  }
+
+  stopAnims(): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      this.httpService.get<string>(`http://${this.LEDS_IP}/anim/stop`, { timeout: 4000 }).subscribe({
+        next: () => {
+          resolve('Animations stopped');
+        },
+        error: (error) => {
+          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+        },
+      });
+    });
+  }
+  startAnims(): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      this.httpService.get<string>(`http://${this.LEDS_IP}/anim/start`, { timeout: 4000 }).subscribe({
+        next: () => {
+          resolve('Animations started');
+        },
+        error: (error) => {
+          this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+          reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+        },
+      });
+    });
+  }
+}
+
+interface AnimationFile {
+  type: string;
+  name: string;
+  size: string;
 }

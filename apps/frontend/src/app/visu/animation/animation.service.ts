@@ -4,14 +4,17 @@ import { ApiReturn, Led, LedAnimation, Line } from '@xmas-leds/api-interfaces';
 import { Subject } from 'rxjs';
 import { ConfigService } from '../../config.service';
 import { LedsService } from '../../leds/leds.service';
+import { NotificationService } from '../../notification/notification.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AnimationService {
-  constructor(private ledsService: LedsService, private httpClient: HttpClient, private configService: ConfigService) {}
+  constructor(private ledsService: LedsService, private httpClient: HttpClient, private configService: ConfigService, private notificationService: NotificationService) {}
 
   changingColor: Subject<Led> = new Subject();
+  animationsListNeedRefresh: Subject<boolean> = new Subject();
+
 
   async sendAnimToTree(lines: Line[]) {
     let start = Date.now();
@@ -31,7 +34,7 @@ export class AnimationService {
     return new Promise<string>((resolve, reject) => {
       // create body with only usefull attriubt
       const body = JSON.stringify({ anim: { titre: anim.titre, lines: anim.lines } });
-      console.log(body);
+      // console.log(body);
 
       this.httpClient
         .post<ApiReturn>(`/api/anim/save`, body, {
@@ -43,20 +46,45 @@ export class AnimationService {
         .subscribe({
           next: (data) => {
             if (data && data.ok) {
+              this.animationsListNeedRefresh.next(true);
               resolve(data.ok);
             } else {
+              this.notificationService.launchNotif_ERROR('Cannot save file');
               console.error(data);
               reject('Cannot save file');
             }
           },
           error: (error) => {
+            this.notificationService.launchNotif_ERROR(error);
             reject(error);
           },
         });
     });
   }
-  deleteFileFromBackend(anim: LedAnimation) {
-    throw new Error("Method not implemented.");
+
+  deleteFileFromBackend(anim: LedAnimation): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      // create body with only usefull attriubt
+
+      this.httpClient
+        .delete<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {})
+        .subscribe({
+          next: (data) => {
+            if (data && data.ok) {
+              this.animationsListNeedRefresh.next(true);
+              resolve(data.ok);
+            } else {
+              console.error(data);
+              this.notificationService.launchNotif_ERROR(`Cannot delete file`);
+              reject('Cannot delete file');
+            }
+          },
+          error: (error) => {
+            this.notificationService.launchNotif_ERROR(error);
+            reject(error);
+          },
+        });
+    });
   }
 
 
@@ -67,30 +95,77 @@ export class AnimationService {
         return resolve('No done');
       }
 
-      this.httpClient.get<ApiReturn>(`/api/anim/push/${encodeURIComponent(anim.titre)}`).subscribe({
+      this.httpClient.get<ApiReturn>(`/api/anim/leds/push/${encodeURIComponent(anim.titre)}`).subscribe({
         next: (data) => {
           if (data && data.ok) {
+            this.animationsListNeedRefresh.next(true);
             resolve(data.ok);
           } else {
             console.error(data);
+            this.notificationService.launchNotif_ERROR(`Cannot push anim ${anim.titre}`);
             reject(`Cannot push anim ${anim.titre}`);
           }
         },
         error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
           reject(error);
         },
       });
     });
   }
-  deleteFromTree(anim: LedAnimation) {
-    throw new Error("Method not implemented.");
+  deleteFromTree(anim: LedAnimation): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+
+      if (this.configService.isDontUseLedEnable()) {
+        return resolve('No done');
+      }
+
+      this.httpClient.delete<ApiReturn>(`/api/anim/leds/${encodeURIComponent(anim.titre)}`).subscribe({
+        next: (data) => {
+          if (data && data.ok) {
+            this.animationsListNeedRefresh.next(true);
+            resolve(data.ok);
+          } else {
+            console.error(data);
+            this.notificationService.launchNotif_ERROR(`Cannot delete anim ${anim.titre}`);
+            reject(`Cannot delete anim ${anim.titre}`);
+          }
+        },
+        error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
+          reject(error);
+        },
+      });
+    });
   }
-  execOnTree(anim: LedAnimation) {
-    throw new Error("Method not implemented.");
+  execOnTree(anim: LedAnimation): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+
+      if (this.configService.isDontUseLedEnable()) {
+        return resolve('No done');
+      }
+
+      this.httpClient.get<ApiReturn>(`/api/anim/leds/exec/${encodeURIComponent(anim.titre)}`).subscribe({
+        next: (data) => {
+          if (data && data.ok) {
+            resolve(data.ok);
+          } else {
+            console.error(data);
+            this.notificationService.launchNotif_ERROR(`Cannot exec anim ${anim.titre}`);
+            reject(`Cannot exec anim ${anim.titre}`);
+          }
+        },
+        error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
+          reject(error);
+        },
+      });
+    });
   }
 
   getAnimationsList(): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
+
       this.httpClient.get<ApiReturn>('/api/anim').subscribe({
         next: (data) => {
           // console.log(data);
@@ -98,10 +173,12 @@ export class AnimationService {
             resolve(data.animations);
           } else {
             console.error(data);
+            this.notificationService.launchNotif_ERROR('Cannot read animations');
             reject('Cannot read animations');
           }
         },
         error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
           reject(error);
         },
       });

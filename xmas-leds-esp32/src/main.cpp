@@ -4,9 +4,9 @@
 // FLASH_MAP_SETUP_CONFIG(FLASH_MAP_MAX_FS);
 
 #include "localFS.h"
+#include "serverWeb.h"
 #include "strip.h"
 #include "wifiCommunication.h"
-#include "serverWeb.h"
 
 unsigned long previousMillis1000Cycle = 0;
 unsigned long interval1000Cycle = 1000;
@@ -48,15 +48,20 @@ void setup() {
   Serial.println("Setting things up ...");
   Serial.flush();
 
+  randomSeed(analogRead(4));
+
   initStrip();
   wifi_setup();
   initServerWeb();
 
   Serial.println();
   Serial.println("Settings done");
+
+  startRandomAnim();
 }
 
 void loop() {
+  updateAnim();
   wifi_check_status();
   handleServerWebClient();
 

@@ -7,9 +7,10 @@ export class LedAnimationVertical extends LedAnimationAbstract {
    */
   calculate = (points: Point[]) => {
     this.clearFile();
-    const duration = 1000;
+    const duration = 4000;
     const numberOfSteps = 20;
-    const tailSize = 5;
+    const tailSize = 10;
+    const color = [0, 255, 0];
 
     const maxZ = points.reduce((p, c) => (p > c.z ? p : c.z), -Infinity);
 
@@ -27,7 +28,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
         const j = stepNum - i;
         if (numberOfSteps > j && j >= 0) {
           for (let index = 0; index < sortedPoints[j].length; index++) {
-            this.setLedColor(sortedPoints[j][index], 255 - (i * 255) / tailSize, 255 - (i * 255) / tailSize, 0);
+            this.setLedColor(sortedPoints[j][index], color[0] - (i * color[0]) / tailSize, color[1] - (i * color[1]) / tailSize, color[2] - (i * color[2]) / tailSize);
           }
         }
       }

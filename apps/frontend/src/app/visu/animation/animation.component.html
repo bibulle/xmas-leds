@@ -14,8 +14,22 @@
     <div   *ngIf="!anim.existOnBackend" class="filler"></div>
     <button *ngIf="anim.existOnTree" (click)="anim.deleteFromTree()">Delete from tree</button>
     <div   *ngIf="!anim.existOnTree" class="filler"></div>
-    <button *ngIf="anim.existOnTree" (click)="anim.execOnTree()">Exdec on tree</button>
+    <button *ngIf="anim.existOnTree" (click)="anim.execOnTree()">Exec on tree</button>
     <div   *ngIf="!anim.existOnTree" class="filler"></div>
+  </div>
+  <div class="button-line">
+    <span *ngIf="!file" class="label">&nbsp;</span>
+    <span *ngIf="file" class="label" (click)="fileUploadButtonClicked()">{{file.name}}</span>
+    <input #inputfile class="form-control" type="file" class="inputfile" (change)="fileUploadChange($event)">
+    <button *ngIf="!file" class="fileUploadButton" (click)="fileUploadButtonClicked()">File to upload</button>
+    <div *ngIf="file"  class="filler" (click)="fileUploadButtonClicked()"></div>
+    <div *ngIf="file"  class="filler" (click)="fileUploadButtonClicked()"></div>
+    <button *ngIf="file" (click)="onUpload()" class="btn btn-success">Upload</button>
+    <!-- <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div> -->
   </div>
 </div>
 <!-- <div class="file">

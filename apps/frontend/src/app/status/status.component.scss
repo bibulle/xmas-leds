@@ -1,0 +1,23 @@
+:host {
+  flex-grow: 1;
+  text-align: end;
+  padding-right: 1em;
+  display: flex;
+  justify-content: flex-end;
+  .status {
+    display: flex;
+    .ok {
+      background-color: rgb(154, 253, 154);
+      padding-right: 0.5em;
+      padding-left: 0.5em;
+      button {
+        margin-left: 0.5em;
+      }
+    }
+    .ko {
+      background-color: #f59393;
+      padding-right: 0.5em;
+      padding-left: 0.5em;
+    }
+  }
+}

@@ -50,6 +50,7 @@
     "@nrwl/node": "15.2.1",
     "@nrwl/workspace": "15.2.1",
     "@types/jest": "28.1.1",
+    "@types/multer": "^1.4.5",
     "@types/node": "16.11.7",
     "@types/three": "^0.146.0",
     "@typescript-eslint/eslint-plugin": "^5.36.1",

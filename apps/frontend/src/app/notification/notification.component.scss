@@ -1,0 +1,30 @@
+:host {
+  position: absolute;
+  bottom: 0.5em;
+  right: 0.5em;
+  // margin-right: 0.1em;
+  // margin-bottom: 0.1em;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  .notif {
+    margin: 0.2em;
+    div {
+      line-height: 2em;
+      padding: 1em;
+      border-radius: 1em;
+    }
+    .\30 {
+      background-color: lightgreen;
+      color: darkgreen;
+    }
+    .\31 {
+      background-color: orange;
+      color: brown;
+    }
+    .\32 {
+      background-color: orangered;
+      color: darkred;
+    }
+  }
+}

@@ -63,7 +63,7 @@ export class Config {
   loadCaptureFromDisk = false;
   dontUseLed = false;
   waitBetweenLeds = false;
-  ledCount = 50;
+  ledCount = 100;
   dontSaveCsvToBackend = false;
 }
 
@@ -97,6 +97,7 @@ export class LedsStatus {
   heapMax?: number;
   totalBytes?: number;
   usedBytes?: number;
+  animOn = true;
 }
 
 export interface LedAnimation {
@@ -112,4 +113,22 @@ export interface LedAnimation {
   pushToTree():void;
   deleteFromTree():void
   execOnTree():void;
+}
+
+export class Notif {
+  level: NotifLevel = NotifLevel.OK;
+  msg = '';
+  id: number;
+
+  constructor(level: NotifLevel, msg:string) {
+    this.level = level;
+    this.msg  = msg;
+    this.id = Math.random();
+  }
+}
+
+export enum NotifLevel {
+  OK,
+  WARN,
+  ERROR,
 }

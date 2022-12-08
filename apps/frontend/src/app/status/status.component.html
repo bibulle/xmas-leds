@@ -1,0 +1,8 @@
+<div class="status">
+  <div *ngIf="ledStatus" class="ok">
+    Led connected<span> (free : {{ freeBytes }})</span>
+    <button *ngIf="ledStatus.animOn" (click)="stopAnims()">Stop Animations</button>
+    <button *ngIf="!ledStatus.animOn" (click)="startAnims()">Start Animations</button>
+  </div>
+  <div *ngIf="!ledStatus" class="ko">Led not connected</div>
+</div>

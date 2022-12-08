@@ -5,6 +5,7 @@ import { Image } from 'image-js';
 import { BehaviorSubject, concatMap, filter, lastValueFrom, Observable, of, range, Subject, takeUntil, toArray } from 'rxjs';
 import { ConfigService } from '../config.service';
 import { LedsService } from '../leds/leds.service';
+import { NotificationService } from '../notification/notification.service';
 import { PointsService } from '../points/points.service';
 import { CaptureService } from './capture/capture.service';
 
@@ -23,7 +24,8 @@ export class AnalyseService {
     private captureService: CaptureService, 
     private ledsService: LedsService, 
     private configService: ConfigService, 
-    private pointsService: PointsService
+    private pointsService: PointsService,
+    private notificationService: NotificationService,
     ) {}
 
   async resetAnalyse() {
@@ -91,16 +93,16 @@ export class AnalyseService {
         m.z = m.z < p.z ? m.z : p.z;
         return m;
       }, new Point(Infinity, Infinity, Infinity));
-      // console.log(points);
-      // console.log(max);
-      // console.log(min);
+      console.log(JSON.stringify(points,null,2));
+      console.log(max);
+      console.log(min);
       const ratio = 2 / Math.max(max.x - min.x, max.y - min.y);
       points.forEach((p) => {
         p.x = (p.x - (max.x + min.x) / 2) * ratio;
         p.y = (p.y - (max.y + min.y) / 2) * ratio;
         p.z = (p.z - min.z) * ratio;
       });
-      console.log(points);
+      console.log(JSON.stringify(points,null,2));
 
       if (!this.configService.isDontSaveCsvToBackend()) {
         this.pointsService
@@ -110,10 +112,11 @@ export class AnalyseService {
             this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
           })
           .catch((reason) => {
+            this.notificationService.launchNotif_ERROR(reason);
             console.error(reason);
           });
       } else {
-        console.log('We do not save points');
+        this.notificationService.launchNotif_WARN("Conf say... do not save to backends");
         this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
       }
     }
@@ -150,6 +153,7 @@ export class AnalyseService {
           });
         })
         .catch((reason) => {
+          this.notificationService.launchNotif_ERROR(reason);
           // console.error(reason);
           reject(reason);
         });
@@ -171,6 +175,7 @@ export class AnalyseService {
           }
         })
         .catch((reason) => {
+          this.notificationService.launchNotif_ERROR(reason);
           // console.error(reason);
           reject(reason);
         });
@@ -254,6 +259,7 @@ export class AnalyseService {
           resolve(myRois);
         })
         .catch(() => {
+          this.notificationService.launchNotif_ERROR(`Cannot load image (${url})`);
           console.error(`Cannot load image (${url})`);
           return reject(`Cannot load image (${url})`);
         });

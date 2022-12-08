@@ -10,7 +10,7 @@ export class LedsController {
   constructor(private httpService: HttpService, private ledsService: LedsService) {}
 
   // ====================================
-  // route geztting status of ESP
+  // route getting status of ESP
   // ====================================
   @Get('/getStatus')
   async getLedStatus(): Promise<ApiReturn> {
