@@ -9,6 +9,7 @@ export class ApiReturn {
   points?: Point[];
   status?: LedsStatus;
   animations?: string[];
+  anim?: LedAnimation;
   // id_token?: string;
   // version?: Version;
   // user?: UserAPI;
@@ -100,19 +101,22 @@ export class LedsStatus {
   animOn = true;
 }
 
+export class savedAnimation {}
+
 export interface LedAnimation {
-  titre : string;
-  existOnBackend:boolean;
-  existOnTree:boolean;
+  titre: string;
+  existOnBackend: boolean;
+  existOnTree: boolean;
   lines: Line[];
 
-  calculate : ((points: Point[]) => void) | undefined;
-  sendAnimToTree():void;
-  saveFileToBackend():void;
-  deleteFileFromBackend():void
-  pushToTree():void;
-  deleteFromTree():void
-  execOnTree():void;
+  calculate?(points: Point[]):void;
+  sendAnimToTree?(): void;
+  saveFileToBackend?(): void;
+  deleteFileFromBackend?(): void;
+  visuFromBackend?(): void;
+  pushToTree?(): void;
+  deleteFromTree?(): void;
+  execOnTree?(): void;
 }
 
 export class Notif {
@@ -120,9 +124,9 @@ export class Notif {
   msg = '';
   id: number;
 
-  constructor(level: NotifLevel, msg:string) {
+  constructor(level: NotifLevel, msg: string) {
     this.level = level;
-    this.msg  = msg;
+    this.msg = msg;
     this.id = Math.random();
   }
 }

@@ -12,22 +12,25 @@
     <button class="btn" (click)="anim.calculate && anim.calculate(points)" [disabled]="!anim.calculate" >
       <i class="fa fa-gears" [title]="anim.existOnBackend ? 'Regenerate' : 'Generate'"></i>
     </button>
-    <button class="btn" (click)="anim.sendAnimToTree()" [disabled]="anim.lines.length === 0" >
+    <button class="btn" (click)="anim.sendAnimToTree && anim.sendAnimToTree()" [disabled]="anim.lines.length === 0" >
       <i class="fa-solid fa-lightbulb" title="Mimic on tree"></i>
     </button>
-    <button class="btn" (click)="anim.saveFileToBackend()" [disabled]="anim.lines.length === 0" >
+    <button class="btn" (click)="anim.saveFileToBackend && anim.saveFileToBackend()" [disabled]="anim.lines.length === 0" >
       <i class="fa-solid fa-floppy-disk" title="Save to server"></i>
     </button>
-    <button class="btn" (click)="anim.deleteFileFromBackend()" [disabled]="!anim.existOnBackend" >
+    <button class="btn" (click)="anim.deleteFileFromBackend &&anim.deleteFileFromBackend()" [disabled]="!anim.existOnBackend" >
       <i class="fa-solid fa-trash" title="Delete from server"></i>
     </button>
-    <button class="btn" (click)="anim.pushToTree()" [disabled]="!anim.existOnBackend" >
+    <button class="btn" (click)="anim.visuFromBackend && anim.visuFromBackend()" [disabled]="!anim.existOnBackend" >
+      <i class="fa-regular fa-lightbulb" title="Visu from backend"></i>
+    </button>
+    <button class="btn" (click)="anim.pushToTree && anim.pushToTree()" [disabled]="!anim.existOnBackend" >
       <i class="fa-solid fa-tree" title="Push to tree"></i>
     </button>
-    <button class="btn" (click)="anim.deleteFromTree()" [disabled]="!anim.existOnTree" >
+    <button class="btn" (click)="anim.deleteFromTree && anim.deleteFromTree()" [disabled]="!anim.existOnTree" >
       <i class="fa-solid fa-trash" title="Delete from tree"></i>
     </button>
-    <button class="btn" (click)="anim.execOnTree()" [disabled]="!anim.existOnTree" >
+    <button class="btn" (click)="anim.execOnTree && anim.execOnTree()" [disabled]="!anim.existOnTree" >
       <i class="fa-solid fa-lightbulb" title="Exec on tree"></i>
     </button>
     <div   *ngIf="!anim.existOnTree" class="filler"></div>

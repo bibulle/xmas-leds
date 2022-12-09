@@ -60,6 +60,13 @@ export abstract class LedAnimationAbstract implements LedAnimation {
    deleteFileFromBackend() {
     this.animationService.deleteFileFromBackend(this)
   }
+    /**
+   * Visu from the backend (from the saved file)
+   */
+    visuFromBackend() {
+      this.animationService.visuFromBackend(this);
+    }
+  
   /**
    * Send the animation to the leds strip (directly, without using a file)
    */

@@ -15,7 +15,6 @@ export class AnimationService {
   changingColor: Subject<Led> = new Subject();
   animationsListNeedRefresh: Subject<boolean> = new Subject();
 
-
   async sendAnimToTree(lines: Line[]) {
     let start = Date.now();
 
@@ -28,6 +27,45 @@ export class AnimationService {
       start = Date.now();
       index++;
     }
+  }
+
+  async visuFromBackend(anim: LedAnimation) {
+    return new Promise<string>((resolve, reject) => {
+      // create body with only usefull attriubt
+
+      this.httpClient.get<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {}).subscribe({
+        next: async (data) => {
+          // console.log(data);
+          if (data && data.anim) {
+            await this.visuByLine(data.anim.lines)
+            resolve('done');
+          } else {
+            console.error(data);
+            this.notificationService.launchNotif_ERROR(`Cannot get anim from backend`);
+            reject('Cannot get anim from backend');
+          }
+        },
+        error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
+          reject(error);
+        },
+      });
+    });
+  }
+
+  async visuByLine(lines: Line[], index = 0): Promise<void> {
+    return new Promise<void>((resolve) => {
+      if (index >= lines.length ) {
+        return resolve();
+      }
+      const line = lines[index];
+      line.leds.forEach((l) => {
+        this.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
+      });
+      setTimeout(() => {
+        this.visuByLine(lines, index + 1);
+      }, line.duration);
+    });
   }
 
   saveFileToBackend(anim: LedAnimation): Promise<string> {
@@ -46,6 +84,7 @@ export class AnimationService {
         .subscribe({
           next: (data) => {
             if (data && data.ok) {
+              this.notificationService.launchNotif_OK(data.ok);
               this.animationsListNeedRefresh.next(true);
               resolve(data.ok);
             } else {
@@ -66,38 +105,37 @@ export class AnimationService {
     return new Promise<string>((resolve, reject) => {
       // create body with only usefull attriubt
 
-      this.httpClient
-        .delete<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {})
-        .subscribe({
-          next: (data) => {
-            if (data && data.ok) {
-              this.animationsListNeedRefresh.next(true);
-              resolve(data.ok);
-            } else {
-              console.error(data);
-              this.notificationService.launchNotif_ERROR(`Cannot delete file`);
-              reject('Cannot delete file');
-            }
-          },
-          error: (error) => {
-            this.notificationService.launchNotif_ERROR(error);
-            reject(error);
-          },
-        });
+      this.httpClient.delete<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {}).subscribe({
+        next: (data) => {
+          if (data && data.ok) {
+            this.notificationService.launchNotif_OK(data.ok);
+            this.animationsListNeedRefresh.next(true);
+            resolve(data.ok);
+          } else {
+            console.error(data);
+            this.notificationService.launchNotif_ERROR(`Cannot delete file`);
+            reject('Cannot delete file');
+          }
+        },
+        error: (error) => {
+          this.notificationService.launchNotif_ERROR(error);
+          reject(error);
+        },
+      });
     });
   }
 
-
   pushToTree(anim: LedAnimation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-
       if (this.configService.isDontUseLedEnable()) {
-        return resolve('No done');
+        this.notificationService.launchNotif_WARN("Not connected to led");
+        return resolve('Not done');
       }
 
       this.httpClient.get<ApiReturn>(`/api/anim/leds/push/${encodeURIComponent(anim.titre)}`).subscribe({
         next: (data) => {
           if (data && data.ok) {
+            this.notificationService.launchNotif_OK(data.ok);
             this.animationsListNeedRefresh.next(true);
             resolve(data.ok);
           } else {
@@ -115,14 +153,15 @@ export class AnimationService {
   }
   deleteFromTree(anim: LedAnimation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-
       if (this.configService.isDontUseLedEnable()) {
-        return resolve('No done');
+        this.notificationService.launchNotif_WARN("Not connected to led");
+        return resolve('Not done');
       }
 
       this.httpClient.delete<ApiReturn>(`/api/anim/leds/${encodeURIComponent(anim.titre)}`).subscribe({
         next: (data) => {
           if (data && data.ok) {
+            this.notificationService.launchNotif_OK(data.ok);
             this.animationsListNeedRefresh.next(true);
             resolve(data.ok);
           } else {
@@ -140,14 +179,15 @@ export class AnimationService {
   }
   execOnTree(anim: LedAnimation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-
       if (this.configService.isDontUseLedEnable()) {
-        return resolve('No done');
+        this.notificationService.launchNotif_WARN("Not connected to led");
+        return resolve('Not done');
       }
 
       this.httpClient.get<ApiReturn>(`/api/anim/leds/exec/${encodeURIComponent(anim.titre)}`).subscribe({
         next: (data) => {
           if (data && data.ok) {
+            this.notificationService.launchNotif_OK(data.ok);
             resolve(data.ok);
           } else {
             console.error(data);
@@ -165,7 +205,6 @@ export class AnimationService {
 
   getAnimationsList(): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
-
       this.httpClient.get<ApiReturn>('/api/anim').subscribe({
         next: (data) => {
           // console.log(data);
@@ -184,5 +223,4 @@ export class AnimationService {
       });
     });
   }
-
 }
