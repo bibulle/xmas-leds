@@ -7,6 +7,8 @@ Donc, cette annes, je me suis lancé...
 
 Voici donc le projet **Xmas-leds**
 
+https://user-images.githubusercontent.com/716982/206690681-7c58886b-e611-4532-bd42-6a083b223973.mp4
+
 J'ai mis la guirlande dans le sapin, puis grace a la caméra, j'ai calculé la position de chacune des leds.
 On obtiens donc un fichier CSV avec l'ensemble des positions de celle-ci.
 
