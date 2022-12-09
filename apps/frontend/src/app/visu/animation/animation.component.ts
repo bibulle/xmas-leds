@@ -36,7 +36,7 @@ export class AnimationComponent implements OnInit {
 
   refreshData() {
     this.animationService.getAnimationsList().then((anims) => {
-      // console.log(anims);
+      console.log("backend : "+anims);
 
       anims.forEach((name) => {
         // console.log(name);
@@ -63,7 +63,7 @@ export class AnimationComponent implements OnInit {
       });
     });
     this.ledsService.getAnimationsList().then((ret) => {
-      console.log(ret);
+      console.log("strip : "+ret);
 
       if (typeof ret === 'string') {
         return;
