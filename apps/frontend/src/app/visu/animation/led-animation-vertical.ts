@@ -10,7 +10,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
     const duration = 4000;
     const numberOfSteps = 20;
     const tailSize = 10;
-    const color = [0, 255, 0];
+    const color = [Math.random()*255, Math.random()*255, Math.random()*255];
 
     const maxZ = points.reduce((p, c) => (p > c.z ? p : c.z), -Infinity);
 
