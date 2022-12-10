@@ -151,53 +151,6 @@ export class AnimationController {
   }
 
   // ====================================
-  // route to get animation files from backend
-  // ====================================
-  @Get(':name')
-  async getAnim(@Param('name') name: string, @Res({ passthrough: true }) res): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve) => {
-      if (!name) {
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
-      }
-
-      const fileName = this.getFileName(name);
-
-      if (!existsSync(fileName)) {
-        throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
-      }
-
-      const lines: Line[] = [];
-      const content = readFileSync(fileName).toString();
-      content.split(/\r?\n/).forEach((lineStr, index) => {
-        const lineSplit = lineStr.split(/,/).map((s) => s.trim());
-
-        if (lineSplit.length > 0) {
-          const duration = +lineSplit[0];
-          const leds: Led[] = lineSplit
-            .filter((v, i) => i > 0)
-            .map((l) => {
-              const numbers = l
-                .split(/ /)
-                .map((s) => s.trim())
-                .map((v) => +v);
-              if (l === "") {
-                return undefined;
-              } else if (numbers.length != 4) {
-                this.logger.error(`line ${index + 1} : '${lineStr}'`);
-                throw new HttpException(`Format error in anim '${name}' (line ${index + 1})`, HttpStatus.INTERNAL_SERVER_ERROR);
-              }
-              return { index: numbers[0], r: numbers[1], g: numbers[2], b: numbers[3] };
-            })
-            .filter((l) => l !== undefined);
-          // this.logger.debug(leds);
-          lines.push({ duration: duration, leds: leds });
-        }
-      });
-
-      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines } });
-    });
-  }
-  // ====================================
   // Route to get all already stored anim in the backend
   // ====================================
   @Get('')
@@ -311,6 +264,54 @@ export class AnimationController {
         .catch((reason) => {
           reject(reason);
         });
+    });
+  }
+
+    // ====================================
+  // route to get animation files from backend
+  // ====================================
+  @Get(':name')
+  async getAnim(@Param('name') name: string, @Res({ passthrough: true }) res): Promise<ApiReturn> {
+    return new Promise<ApiReturn>((resolve) => {
+      if (!name) {
+        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      }
+
+      const fileName = this.getFileName(name);
+
+      if (!existsSync(fileName)) {
+        throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
+      }
+
+      const lines: Line[] = [];
+      const content = readFileSync(fileName).toString();
+      content.split(/\r?\n/).forEach((lineStr, index) => {
+        const lineSplit = lineStr.split(/,/).map((s) => s.trim());
+
+        if (lineSplit.length > 0) {
+          const duration = +lineSplit[0];
+          const leds: Led[] = lineSplit
+            .filter((v, i) => i > 0)
+            .map((l) => {
+              const numbers = l
+                .split(/ /)
+                .map((s) => s.trim())
+                .map((v) => +v);
+              if (l === "") {
+                return undefined;
+              } else if (numbers.length != 4) {
+                this.logger.error(`line ${index + 1} : '${lineStr}'`);
+                throw new HttpException(`Format error in anim '${name}' (line ${index + 1})`, HttpStatus.INTERNAL_SERVER_ERROR);
+              }
+              return { index: numbers[0], r: numbers[1], g: numbers[2], b: numbers[3] };
+            })
+            .filter((l) => l !== undefined);
+          // this.logger.debug(leds);
+          lines.push({ duration: duration, leds: leds });
+        }
+      });
+
+      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines } });
     });
   }
 

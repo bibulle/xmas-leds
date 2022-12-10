@@ -1,43 +1,77 @@
-import { Point } from '@xmas-leds/api-interfaces';
+import { Led, Point } from '@xmas-leds/api-interfaces';
 import { LedAnimationAbstract } from './led-animation-abstract';
 
 export class LedAnimationVertical extends LedAnimationAbstract {
+  tails: Led[][] = [];
+
   /**
    * Calculate the animations
    */
   calculate = (points: Point[]) => {
+    this.tails = [];
     this.clearFile();
-    const duration = 4000;
-    const numberOfSteps = 20;
-    const tailSize = 10;
-    const color = [Math.random()*255, Math.random()*255, Math.random()*255];
+    const duration = 2000;
+    const numberOfStepsVert = 10;
+    const numberOfStepsRota = 100;
+    const rotationTotal = 720;
+    const tailSize = 20;
+    const color = [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 
     const maxZ = points.reduce((p, c) => (p > c.z ? p : c.z), -Infinity);
 
-    const sortedPoints: number[][] = [...Array(numberOfSteps).keys()].map(() => []);
+    const sortedPoints: { index: number; angle: number }[][] = [...Array(numberOfStepsVert).keys()].map(() => []);
 
     points.forEach((p, index) => {
-      const percentZ = Math.min(Math.floor((numberOfSteps * p.z) / maxZ), numberOfSteps - 1);
-      sortedPoints[percentZ].push(index);
+      const percentZ = Math.min(Math.floor((numberOfStepsVert * p.z) / maxZ), numberOfStepsVert - 1);
+      const angle = 180 + (Math.atan2(p.y, p.x) * 180.0) / Math.PI;
+      sortedPoints[percentZ].push({ index: index, angle: angle });
     });
     // console.log(sortedPoints)
 
-    let stepNum = 0;
-    const interval = setInterval(() => {
-      for (let i = 0; i < tailSize + 1; i++) {
-        const j = stepNum - i;
-        if (numberOfSteps > j && j >= 0) {
-          for (let index = 0; index < sortedPoints[j].length; index++) {
-            this.setLedColor(sortedPoints[j][index], color[0] - (i * color[0]) / tailSize, color[1] - (i * color[1]) / tailSize, color[2] - (i * color[2]) / tailSize);
-          }
+    for (let step = 0; step < numberOfStepsRota + tailSize + 3; step++) {
+      let leds: Led[] = [];
+      const stepVert = Math.floor((step * numberOfStepsVert) / numberOfStepsRota);
+      // console.log(`${stepVert} ${numberOfStepsVert} ${sortedPoints.length}`);
+      for (let i = 0; stepVert < sortedPoints.length && i < sortedPoints[stepVert].length; i++) {
+        if ((sortedPoints[stepVert][i].angle + (step * rotationTotal) / numberOfStepsRota) % 360 > 180) {
+          leds.push({ index: sortedPoints[stepVert][i].index, r: color[0], g: color[1], b: color[2] });
         }
       }
-      this.saveLine(duration / numberOfSteps);
-      stepNum++;
-      if (stepNum > numberOfSteps + tailSize) {
-        clearInterval(interval);
-        // this.saveFile(anim);
-      }
-    }, duration / numberOfSteps);
+
+      leds = this.manageTail(leds, tailSize);
+      this.saveLine(duration / numberOfStepsRota, leds);
+    }
+
+    this.visuByLine();
+    // console.log(this.lines);
   };
+
+  manageTail(leds: Led[], tailsSize: number): Led[] {
+    const ledsOut = [...leds];
+    this.tails.push(leds);
+
+    for (let i = this.tails.length - 2; i >= 0; i--) {
+      const tailNum = this.tails.length - 1 - i;
+      const ledsTail = this.tails[i];
+      ledsTail.forEach((l) => {
+        if (!ledsOut.find((o) => o.index === l.index)) {
+          const newLed: Led = { index: l.index, r: this.calcColor(l.r, tailNum, tailsSize), g: this.calcColor(l.g, tailNum, tailsSize), b: this.calcColor(l.b, tailNum, tailsSize) };
+          // console.log(`${newLed.index} ${newLed.r} `);
+          ledsOut.push(newLed);
+        }
+      });
+    }
+
+    this.tails = this.tails.slice(-tailsSize - 2);
+
+    return ledsOut;
+  }
+
+  calcColor(colorInit: number, tailNum: number, tailsSize: number): number {
+    // console.log(`calcColor(${colorInit}, ${tailNum}, ${tailsSize} => ${colorInit * (tailsSize-tailNum)/tailsSize} `);
+    if (tailNum > tailsSize) {
+      tailNum = tailsSize;
+    }
+    return (colorInit * (tailsSize - tailNum)) / tailsSize;
+  }
 }
