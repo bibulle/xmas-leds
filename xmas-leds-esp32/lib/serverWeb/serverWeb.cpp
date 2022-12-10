@@ -362,9 +362,6 @@ void handleRenameAnim() {
  */
 void handleAnimStop() {
   toggleStopAnimation(true);
-  if (fsUploadFile) {
-    fsUploadFile.close();
-  }
 
   setAllPixel(RgbColor(0));
   showStrip();

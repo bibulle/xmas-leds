@@ -48,7 +48,13 @@ void setAllPixel(RgbColor color) {
 }
 
 void updateAnim() {
-  if (stopAnimations || millis() < newAnimLineTime) {
+  if (millis() < newAnimLineTime) {
+    return;
+  }
+  if (stopAnimations) {
+    if (currentAnimFil) {
+      currentAnimFil.close();
+    }
     return;
   }
   if (!currentAnimFil || !currentAnimFil.available() || currentAnimFil.isDirectory()) {
