@@ -66,6 +66,24 @@ export class LedsService {
     });
   }
 
+  renameAnim(path1: string, path2: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+
+    this.logger.debug(`renale ${path1} -> ${path2}`);
+
+    this.httpService.get<string>(`http://${this.LEDS_IP}/anim/rename?name1=${encodeURIComponent(path1)}&name2=${encodeURIComponent(path2)}`, { timeout: 4000 }).subscribe({
+      next: () => {
+        resolve('anim renamed');
+      },
+      error: (error) => {
+        this.logger.error(`${error.message} : ${error.response?.data} (${error.request.path})`);
+        reject(new HttpException(`Cannot connect to Strip (${error})`, HttpStatus.INTERNAL_SERVER_ERROR));
+      },
+    });
+  });
+
+}
+
   uploadToStrip(name: string, path: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       if (!existsSync(path)) {
@@ -191,16 +209,17 @@ export class LedsService {
     });
   }
 
-  getAnimsFromStrip(): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) => {
+  getAnimsFromStrip(): Promise<{animations: string[], files: AnimationFile[]}> {
+    return new Promise<{animations: string[], files: AnimationFile[]}>((resolve, reject) => {
       this.httpService.get<AnimationFile[]>(`http://${this.LEDS_IP}/list?dir=/animations`, { timeout: 4000 }).subscribe({
         next: (response) => {
-          resolve(
-            response.data
-              .filter((af) => af.name.endsWith('.csv'))
-              .map((af) => {
-                return af.name.replace(/^animations\//, '').replace(/[.]csv$/, '');
-              })
+          const anims = response.data
+          .filter((af) => af.name.endsWith('.csv'))
+          .map((af) => {
+            return af.name.replace(/^animations\//, '').replace(/[.]csv$/, '');
+          });
+          resolve({animations: anims, files: response.data}
+            
           );
         },
         error: (error) => {

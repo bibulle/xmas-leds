@@ -333,11 +333,42 @@ void handleExecAnim() {
 
   server.send(200, "text/plain", "Started");
 }
+
+void handleRenameAnim() {
+  if (!server.hasArg("name1") || !server.hasArg("name2")) {
+    server.send(500, "text/plain", "BAD ARGS");
+    return;
+  }
+
+  String animation1 = server.arg("name1");
+  String animation2 = server.arg("name2");
+  Serial.println("handleRenameAnim: " + animation1 + " " + animation2);
+
+  String path1 = "/animations/" + animation1;
+  String path2 = "/animations/" + animation2;
+  if (!exists(path1)) {
+    return server.send(404, "text/plain", "FileNotFound " + path1);
+  }
+
+  bool ret = LittleFS.rename(path1, path2);
+  if (ret) {
+    server.send(200, "text/plain", "Renamed");
+  } else {
+    server.send(500, "text/plain", "Cannot rename");
+  }
+}
 /**
  * hange stop/start animations
  */
 void handleAnimStop() {
   toggleStopAnimation(true);
+  if (fsUploadFile) {
+    fsUploadFile.close();
+  }
+
+  setAllPixel(RgbColor(0));
+  showStrip();
+
   server.send(200, "text/plain", "Stopped");
 }
 void handleAnimStart() {
@@ -367,6 +398,8 @@ void initServerWeb(void) {
       handleFileUpload);
   server.on("/anim", HTTP_DELETE, handleFileDelete);
   server.on("/anim/exec", handleExecAnim);
+  server.on("/anim/exec", handleExecAnim);
+  server.on("/anim/rename", handleRenameAnim);
 
   // called when the url is not defined here
   // use it to load content from FILESYSTEM

@@ -1,24 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  FileTypeValidator,
-  Get,
-  HttpException,
-  HttpStatus,
-  Logger,
-  MaxFileSizeValidator,
-  Param,
-  ParseFilePipe,
-  Post,
-  Res, UploadedFile,
-  UseInterceptors
-} from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiReturn, Led, LedAnimation, Line } from '@xmas-leds/api-interfaces';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'fs';
 import 'multer';
 import { diskStorage } from 'multer';
+import { basename } from 'path';
 import { LedsService } from '../leds/leds.service';
 
 @Controller('anim')
@@ -75,6 +61,9 @@ export class AnimationController {
           cpt++;
         }
         renameSync(this.getFileName(anim.titre), this.getFileName(anim.titre, cpt));
+        this.ledsService.renameAnim(basename(this.getFileName(anim.titre)), basename(this.getFileName(anim.titre, cpt))).catch((reason) => {
+          this.logger.error(reason);
+        });
       }
 
       writeFileSync(this.getFileName(anim.titre), Buffer.from(content));
@@ -142,7 +131,8 @@ export class AnimationController {
       this.ledsService
         .getAnimsFromStrip()
         .then((m) => {
-          resolve({ animations: m });
+          this.logger.log(m);
+          resolve({ animations: m.animations });
         })
         .catch((reason) => {
           reject(reason);
@@ -267,11 +257,11 @@ export class AnimationController {
     });
   }
 
-    // ====================================
+  // ====================================
   // route to get animation files from backend
   // ====================================
   @Get(':name')
-  async getAnim(@Param('name') name: string, @Res({ passthrough: true }) res): Promise<ApiReturn> {
+  async getAnim(@Param('name') name: string): Promise<ApiReturn> {
     return new Promise<ApiReturn>((resolve) => {
       if (!name) {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
@@ -297,7 +287,7 @@ export class AnimationController {
                 .split(/ /)
                 .map((s) => s.trim())
                 .map((v) => +v);
-              if (l === "") {
+              if (l === '') {
                 return undefined;
               } else if (numbers.length != 4) {
                 this.logger.error(`line ${index + 1} : '${lineStr}'`);
