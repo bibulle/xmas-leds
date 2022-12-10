@@ -131,7 +131,7 @@ export class AnimationController {
       this.ledsService
         .getAnimsFromStrip()
         .then((m) => {
-          this.logger.log(m);
+          // this.logger.log(m);
           resolve({ animations: m.animations });
         })
         .catch((reason) => {

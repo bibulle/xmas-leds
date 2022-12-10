@@ -10,10 +10,10 @@ export class LedAnimationVertical extends LedAnimationAbstract {
   calculate = (points: Point[]) => {
     this.tails = [];
     this.clearFile();
-    const duration = 2000;
+    const duration = 1000;
     const numberOfStepsVert = 10;
     const numberOfStepsRota = 100;
-    const rotationTotal = 720;
+    const rotationTotal = 1800;
     const tailSize = 20;
     const color = [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 

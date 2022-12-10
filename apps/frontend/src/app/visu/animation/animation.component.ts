@@ -6,6 +6,7 @@ import { LedsService } from '../../leds/leds.service';
 import { NotificationService } from '../../notification/notification.service';
 import { AnimationService } from './animation.service';
 import { FileUploadService } from './file-upload/file-upload.service';
+import { LedAnimationSparkle } from './led-animation-sparkle';
 import { LedAnimationUploaded } from './led-animation-uploaded';
 import { LedAnimationVertical } from './led-animation-vertical';
 
@@ -24,7 +25,7 @@ export class AnimationComponent implements OnInit {
 
   constructor(private animationService: AnimationService, private ledsService: LedsService, private fileUploadService: FileUploadService, private notificationService: NotificationService) {}
 
-  public animations: LedAnimation[] = [new LedAnimationVertical('Vertical', this.animationService)];
+  public animations: LedAnimation[] = [new LedAnimationVertical('Vertical', this.animationService), new LedAnimationSparkle('Sparkle', this.animationService)];
 
   ngOnInit() {
     this.animationService.animationsListNeedRefresh.subscribe(() => {

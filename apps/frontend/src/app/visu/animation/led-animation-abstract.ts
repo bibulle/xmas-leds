@@ -21,7 +21,9 @@ export abstract class LedAnimationAbstract implements LedAnimation {
    * @param duration
    */
   saveLine(duration: number, leds: Led[]) {
-    this.lines.push({ duration: duration, leds: leds });
+    this.lines.push({ duration: duration, leds: leds.map(l => {
+      return {index: l.index, r:Math.round(l.r),g:Math.round(l.g),b:Math.round(l.b)}
+    }) });
     // leds.forEach((l) => {
     //   this.animationService.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
     // });
