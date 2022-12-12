@@ -85,6 +85,34 @@ export class Led {
   g = 0;
   b = 0;
 }
+export class Color {
+  r: number;
+  g: number;
+  b: number;
+
+  constructor(r = Math.floor(Math.random() * 256), g = Math.floor(Math.random() * 256), b = Math.floor(Math.random() * 256)) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+  static toString(c: Color): string {
+    return `rgb(${c.r}, ${c.g}, ${c.b})`;
+  }
+  static fromString(s: string): Color {
+    const re1 = /^rgb[(] *([0-9]+) *, *([0-9]+) *, *([0-9]+) *[)]$/i;
+    const re2 = /^#([A-F0-9][A-F0-9])([A-F0-9][A-F0-9])([A-F0-9][A-F0-9])$/i;
+    const match1 = s.match(re1);
+    const match2 = s.match(re2);
+    if (match1?.length === 4) {
+      return new Color(+match1[1], +match1[2], +match1[3]);
+    } else if (match2?.length === 4) {
+      return new Color(parseInt(match2[1], 16), parseInt(match2[2], 16), parseInt(match2[3], 16));
+    }
+
+    console.log(`Unknown color format '${s}'`);
+    return new Color(0, 0, 0);
+  }
+}
 export class Line {
   duration = 0;
   leds: Led[] = [];
@@ -109,7 +137,9 @@ export interface LedAnimation {
   existOnTree: boolean;
   lines: Line[];
 
-  calculate?(points: Point[]):void;
+  options: LedAnimOption[];
+
+  calculate?(points: Point[]): void;
   sendAnimToTree?(): void;
   saveFileToBackend?(): void;
   deleteFileFromBackend?(): void;
@@ -117,6 +147,41 @@ export interface LedAnimation {
   pushToTree?(): void;
   deleteFromTree?(): void;
   execOnTree?(): void;
+}
+export abstract class LedAnimOption {
+  name = 'foo';
+  abstract type: LedAnimOptionType;
+  valueN?: number;
+  valueS?: string;
+
+  min?: number;
+  max?: number;
+  unit?: string;
+}
+
+export class LedAnimOptionNum extends LedAnimOption {
+  type = LedAnimOptionType.NUMBER;
+  override valueN = 0;
+
+  constructor(name: string, defaultValue: number, min: number, max: number, unit: string) {
+    super();
+    this.valueN = defaultValue;
+    this.name = name;
+    this.min = min;
+    this.max = max;
+    this.unit = unit;
+  }
+}
+
+export class LedAnimOptionColor extends LedAnimOption {
+  type = LedAnimOptionType.COLOR;
+  override valueS = '';
+
+  constructor(name: string, defaultColor: Color) {
+    super();
+    this.name = name;
+    this.valueS = Color.toString(defaultColor);
+  }
 }
 
 export class Notif {
@@ -135,4 +200,8 @@ export enum NotifLevel {
   OK,
   WARN,
   ERROR,
+}
+export enum LedAnimOptionType {
+  NUMBER,
+  COLOR,
 }

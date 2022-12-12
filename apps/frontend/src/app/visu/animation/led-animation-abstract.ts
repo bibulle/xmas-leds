@@ -1,4 +1,4 @@
-import { Led, LedAnimation, Line, Point } from '@xmas-leds/api-interfaces';
+import { Color, Led, LedAnimation, LedAnimOption, LedAnimOptionType, Line, Point } from '@xmas-leds/api-interfaces';
 import { AnimationService } from './animation.service';
 
 export abstract class LedAnimationAbstract implements LedAnimation {
@@ -7,10 +7,25 @@ export abstract class LedAnimationAbstract implements LedAnimation {
   existOnTree = false;
   lines: Line[] = [];
 
+  options: LedAnimOption[] = [];
+
   constructor(titre: string, private animationService: AnimationService) {
     this.titre = titre;
   }
 
+  /**
+   * Get the option value
+   */
+  getOption(name: string): undefined | number | Color {
+    const find = this.options.find((o) => o.name.toLowerCase() === name.toLowerCase());
+    if (!find) {
+      return undefined;
+    } else if (find.valueS && find.type === LedAnimOptionType.COLOR) {
+      return Color.fromString(find.valueS);
+    } else {
+      return find.valueN;
+    }
+  }
   /**
    * Calculate the animations
    */
@@ -21,9 +36,12 @@ export abstract class LedAnimationAbstract implements LedAnimation {
    * @param duration
    */
   saveLine(duration: number, leds: Led[]) {
-    this.lines.push({ duration: duration, leds: leds.map(l => {
-      return {index: l.index, r:Math.round(l.r),g:Math.round(l.g),b:Math.round(l.b)}
-    }) });
+    this.lines.push({
+      duration: duration,
+      leds: leds.map((l) => {
+        return { index: l.index, r: Math.round(l.r), g: Math.round(l.g), b: Math.round(l.b) };
+      }),
+    });
     // leds.forEach((l) => {
     //   this.animationService.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
     // });

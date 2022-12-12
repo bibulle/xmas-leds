@@ -103,4 +103,34 @@
       }
     }
   }
+
+  .options {
+    position: absolute;
+    background-color: lightgray;
+    border-width: 1px;
+    border-style: solid;
+    border-color: grey;
+    display: flex;
+    flex-direction: column;
+    padding: 0.3em;
+    min-width: 10em;
+    .option {
+      display: flex;
+      padding-bottom: 0.2em;
+      div {
+        padding-right: 0.3em;
+        width: 7em;
+      }
+      input {
+        flex-grow: 1;
+      }
+      .unit {
+        width: 1.5em;
+        padding-left: 0.2em;
+      }
+    }
+  }
+  .options.hide {
+    display: none;
+  }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Led, LedAnimation, Point } from '@xmas-leds/api-interfaces';
+import { Led, LedAnimation, LedAnimOption, Point } from '@xmas-leds/api-interfaces';
 import { catchError, of, Subject } from 'rxjs';
 import { LedsService } from '../../leds/leds.service';
 import { NotificationService } from '../../notification/notification.service';
@@ -22,6 +22,11 @@ export class AnimationComponent implements OnInit {
 
   @Input() public points: Point[] = [];
   @ViewChild('inputfile') input?: ElementRef;
+  @ViewChild('optionDiv') optionDiv?: ElementRef;
+
+  optionHide = true;
+  options: LedAnimOption[] = [];
+  public color ="#FFFF00"
 
   constructor(private animationService: AnimationService, private ledsService: LedsService, private fileUploadService: FileUploadService, private notificationService: NotificationService) {}
 
@@ -144,4 +149,19 @@ export class AnimationComponent implements OnInit {
         });
     }
   }
+
+  shownOptions(options: LedAnimOption[], event: MouseEvent) {
+    if (this.optionDiv) {
+      this.optionDiv.nativeElement.style.left = event.clientX+"px";
+      this.optionDiv.nativeElement.style.top  = event.clientY+"px";
+    }
+    this.optionHide = false;
+    this.options = options;
+  }
+  hideOptions() {
+    console.log(this.options);
+    
+    this.optionHide = true;
+  }
+
 }

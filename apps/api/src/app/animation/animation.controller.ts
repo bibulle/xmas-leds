@@ -301,7 +301,7 @@ export class AnimationController {
         }
       });
 
-      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines } });
+      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines, options:[] } });
     });
   }
 

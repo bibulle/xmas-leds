@@ -9,6 +9,9 @@
     <div class="separator server"></div>
     <div class="separator tree"></div>
     <span class="label">{{ anim.titre | titlecase }}</span>
+    <button class="btn" (click)="shownOptions(anim.options, $event)" [disabled]="!anim.options || anim.options.length === 0" >
+      <i class="fa fa-bars" title="Options"></i>
+    </button>
     <button class="btn" (click)="anim.calculate && anim.calculate(points)" [disabled]="!anim.calculate" >
       <i class="fa fa-gears" [title]="anim.existOnBackend ? 'Regenerate' : 'Generate'"></i>
     </button>
@@ -61,3 +64,12 @@
     </div>
   </div>
 </div> -->
+<div #optionDiv class="options" [ngClass]="{hide : optionHide}">
+  <div *ngFor="let option of options" class="option">
+      <div>{{option.name}}</div>
+      <input *ngIf="option.type === 0" type="number" min="{{option.min}}" max="{{option.max}}" [(ngModel)]="option.valueN">
+      <span  *ngIf="option.type === 0" class="unit">{{option.unit}}</span>
+      <input *ngIf="option.type === 1 && option.valueS" [(colorPicker)]="option.valueS" [style.background]="option.valueS"/>
+  </div>
+  <button (click)="hideOptions()" class="btn btn-success">Done</button>
+</div>
