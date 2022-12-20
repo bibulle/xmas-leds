@@ -147,8 +147,8 @@ void startRandomAnim() {
     return;
   }
 
-  int randomNumber = random(cpt);
-  Serial.printf("Anim %d : '%s'\n", randomNumber, anims[randomNumber]);
+  int randomNumber = random(0, 100 * cpt);
+  Serial.printf("Anim %d : '%s'\n", randomNumber, anims[randomNumber % cpt]);
 
-  startAnim(anims[randomNumber]);
+  startAnim(anims[randomNumber % cpt]);
 }
