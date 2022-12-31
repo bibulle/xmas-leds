@@ -15,8 +15,8 @@ export class LedAnimationVertical extends LedAnimationAbstract {
     new LedAnimOptionColor('Color 2 bas', new Color(255, 0, 0)),
     new LedAnimOptionColor('Color 1 haut', new Color(0, 255, 0)),
     new LedAnimOptionColor('Color 2 haut', new Color(0, 255, 0)),
-    new LedAnimOptionNum('Angle X', 0, 1, 90, '°'),
-    new LedAnimOptionNum('Angle Y', 0, 1, 90, '°'),
+    new LedAnimOptionNum('Angle X', 0, 1, 180, '°'),
+    new LedAnimOptionNum('Angle Y', 0, 1, 180, '°'),
     new LedAnimOptionNum('Angle Z', 0, 1, 180, '°'),
 
   ];
@@ -75,7 +75,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
     const sortedPoints: { index: number; angle: number }[][] = [...Array(numberOfStepsVert).keys()].map(() => []);
 
     points.forEach((p, index) => {
-      const percentZ = Math.min(Math.floor((numberOfStepsVert * (p.z - minZ)) / maxZ), numberOfStepsVert - 1);
+      const percentZ = Math.min(Math.floor((numberOfStepsVert * (p.z - minZ)) / (maxZ-minZ)), numberOfStepsVert - 1);
       const angle = 180 + (Math.atan2(p.y-meanY, p.x-meanX) * 180.0) / Math.PI;
       sortedPoints[percentZ].push({ index: index, angle: angle });
     });

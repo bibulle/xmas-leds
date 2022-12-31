@@ -40,6 +40,8 @@ export enum Status {
   WAITING,
   GETTING_LED,
   CALCULATING,
+  WAIT_FOR_SAVE,
+  SAVING,
 }
 
 export class MyRoi {

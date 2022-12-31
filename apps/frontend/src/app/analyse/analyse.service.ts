@@ -19,111 +19,117 @@ export class AnalyseService {
 
   private imageWidth = NaN;
   private rois: any[][] = [[], [], [], []];
+  private points: Point[] = [];
 
   constructor(
-    private captureService: CaptureService, 
-    private ledsService: LedsService, 
-    private configService: ConfigService, 
+    private captureService: CaptureService,
+    private ledsService: LedsService,
+    private configService: ConfigService,
     private pointsService: PointsService,
-    private notificationService: NotificationService,
-    ) {}
+    private notificationService: NotificationService
+  ) {}
 
   async resetAnalyse() {
     this.avancementTrigger.next(new Advancement());
   }
-  async startAnalyse() {
+  async nextStepAnalyse() {
+    this.ledsService.toggleStartAnims(false);
     // let stillRunning = true;
     const angle = this.avancementTrigger.value.angle;
+    const status = this.avancementTrigger.value.status;
 
-    this.avancementTrigger.next(new Advancement(Status.GETTING_LED, angle, 0));
+    // We were waiting for next angle
+    if (status === Status.WAITING) {
+      this.avancementTrigger.next(new Advancement(Status.GETTING_LED, angle, 0));
 
-    this.rois[angle / 90] = await lastValueFrom(
-      range(0, this.configService.getLedCount())
-        .pipe(
-          concatMap((led) => {
-            return this.manageNextLed(angle, led).catch(() => {
-              this.avancementTrigger.next(new Advancement(Status.WAITING, this.avancementTrigger.value.angle));
-            });
-          }),
-          takeUntil(this.avancementObservableWaiting())
-        )
-        .pipe(
-          concatMap((value) => {
-            return of(value);
-          }),
-          toArray()
-        )
-    );
-    // console.log(this.rois);
+      // manage all leds for this angle
+      this.rois[angle / 90] = await lastValueFrom(
+        range(0, this.configService.getLedCount())
+          .pipe(
+            concatMap((led) => {
+              return this.manageNextLed(angle, led).catch(() => {
+                this.avancementTrigger.next(new Advancement(Status.WAITING, this.avancementTrigger.value.angle));
+              });
+            }),
+            takeUntil(this.avancementObservableWaiting())
+          )
+          .pipe(
+            concatMap((value) => {
+              return of(value);
+            }),
+            toArray()
+          )
+      );
 
-    if (this.rois[angle / 90].length !== this.configService.getLedCount()) {
-      // erreur
-      return;
-    } else if (angle !== 270) {
-      // Switch to another angle
-      this.avancementTrigger.next(new Advancement(Status.WAITING, (angle + 90) % 360));
-    } else {
-      // start calulating points
+      // if something go wrong
+      if (this.rois[angle / 90].length !== this.configService.getLedCount()) {
+        console.error('Error on reading leds !!!');
+        // erreur
+        return;
+      }
+
+      // if we haven't finished angles, go to next one
+      if (angle !== 270) {
+        // Switch to another angle
+        return this.avancementTrigger.next(new Advancement(Status.WAITING, (angle + 90) % 360));
+      }
+
+      // we have finished all angles, start point calculations
+      // console.log(this.rois);
+
       this.avancementTrigger.next(new Advancement(Status.CALCULATING, 0));
 
-      const points = [...Array(this.configService.getLedCount()).keys()].map((i) => {
-        const p0 = new Point2DTaille(this.rois[0][i]);
-        const p1 = new Point2DTaille(this.rois[1][i]);
-        const p2 = new Point2DTaille(this.rois[2][i]);
-        const p3 = new Point2DTaille(this.rois[3][i]);
+      this.points = await this.calculatePoints();
 
-        return new Point(
-          this.average(this.imageWidth / 2 - p0.x, p0.taille, p2.x - this.imageWidth / 2, p2.taille),
-          this.average(this.imageWidth / 2 - p1.x, p1.taille, p3.x - this.imageWidth / 2, p3.taille),
-          this.average(-p0.z, p0.taille, -p1.z, p1.taille, -p2.z, p2.taille, -p3.z, p3.taille)
-        );
+      // test if unknown points
+      this.points.forEach(async (p, index) => {
+        // console.log(p);
+        if (Number.isNaN(p.x) || Number.isNaN(p.y) || Number.isNaN(p.z)) {
+          console.log(`${index} : ${p.x}, ${p.y}, ${p.z}`);
+          await this.ledsService.switchOnALed(index);
+        }
       });
-      // console.log(points);
 
-      // calculate max and min X and Y
-      const max = points.reduce((m, p) => {
-        m.x = Number.isNaN(p.x) ? m.x : m.x > p.x ? m.x : p.x;
-        m.y = Number.isNaN(p.y) ? m.y : m.y > p.y ? m.y : p.y;
-        m.z = Number.isNaN(p.z) ? m.z : m.z > p.z ? m.z : p.z;
-        return m;
-      }, new Point(-Infinity, -Infinity, -Infinity));
-      const min = points.reduce((m, p) => {
-        console.log(`${m.x} ${p.x}`);
-        m.x = Number.isNaN(p.x) ? m.x : m.x < p.x ? m.x : p.x;
-        m.y = Number.isNaN(p.y) ? m.y : m.y < p.y ? m.y : p.y;
-        m.z = Number.isNaN(p.z) ? m.z : m.z < p.z ? m.z : p.z;
-        console.log(`${m.x} ${p.x}`);
-        return m;
-      }, new Point(Infinity, Infinity, Infinity));
-      console.log(JSON.stringify(points,null,2));
-      console.log(max);
-      console.log(min);
-      const ratio = 2 / Math.max(max.x - min.x, max.y - min.y);
-      points.forEach((p) => {
-        p.x = (p.x - (max.x + min.x) / 2) * ratio;
-        p.y = (p.y - (max.y + min.y) / 2) * ratio;
-        p.z = (p.z - min.z) * ratio;
-      });
-      console.log(JSON.stringify(points,null,2));
+      // calculate hight for constante volume
+      const nbHight = 5;
+      const hights: number[] = [];
+      const maxZ = this.points.reduce((m, p) => Number.isNaN(p.z) ? m : m > p.z ? m : p.z, -Infinity);
 
-      if (!this.configService.isDontSaveCsvToBackend()) {
-        this.pointsService
-          .sendPointsToBackend(points)
-          .then((s) => {
-            console.log(s);
-            this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
-          })
-          .catch((reason) => {
-            this.notificationService.launchNotif_ERROR(reason);
-            console.error(reason);
-          });
-      } else {
-        this.notificationService.launchNotif_WARN("Conf say... do not save to backends");
-        this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
+      for (let cpt = 0; cpt <= nbHight; cpt++) {
+        const h = maxZ * (1-Math.pow(cpt/nbHight, 1/3));
+        hights.push(h);       
       }
+      const distribution = this.points.reduce((dist, p) => {
+        for (let i = 0; i < nbHight; i++) {
+          if (hights[i]>=p.z && p.z>=hights[i+1]) {
+            dist[i] = +dist[i]+1
+          }
+        }
+        return dist;
+      }, [0,0,0,0,0]);
+
+      console.log(maxZ);
+      console.log(hights);
+      console.log(distribution);
+
+
+      this.avancementTrigger.next(new Advancement(Status.WAIT_FOR_SAVE, 0));
+    } else if (status === Status.WAIT_FOR_SAVE) {
+      // start saving points
+      this.avancementTrigger.next(new Advancement(Status.SAVING, 0));
+      await this.savePoints(this.points);
+      return this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
+
     }
   }
 
+  /**
+   * Capture and calculate ROIs for a new led
+   * @param angle
+   * @param led
+   * @param url
+   * @returns
+   */
   async manageNextLed(angle: number, led: number): Promise<MyRoi | undefined> {
     return new Promise((resolve, reject) => {
       this.avancementTrigger.next(new Advancement(Status.GETTING_LED, angle, led));
@@ -162,6 +168,13 @@ export class AnalyseService {
     });
   }
 
+  /**
+   * We receive a new image... manage it
+   * @param angle
+   * @param led
+   * @param url
+   * @returns
+   */
   public handleImage(angle: number, led: number, url: string): Promise<MyRoi | undefined> {
     return new Promise<MyRoi | undefined>((resolve, reject) => {
       // image captured...
@@ -184,6 +197,11 @@ export class AnalyseService {
     });
   }
 
+  /**
+   * Get ROIs from an image (by Url)
+   * @param url
+   * @returns
+   */
   async getRois(url: string): Promise<MyRoi[]> {
     return new Promise<MyRoi[]>((resolve, reject) => {
       Image.load(url)
@@ -265,6 +283,77 @@ export class AnalyseService {
           console.error(`Cannot load image (${url})`);
           return reject(`Cannot load image (${url})`);
         });
+    });
+  }
+
+  /**
+   * Calculates the points from the rois
+   */
+  async calculatePoints(): Promise<Point[]> {
+    return new Promise<Point[]>((resolve) => {
+      const points = [...Array(this.configService.getLedCount()).keys()].map((i) => {
+        const p0 = new Point2DTaille(this.rois[0][i]);
+        const p1 = new Point2DTaille(this.rois[1][i]);
+        const p2 = new Point2DTaille(this.rois[2][i]);
+        const p3 = new Point2DTaille(this.rois[3][i]);
+
+        return new Point(
+          this.average(this.imageWidth / 2 - p0.x, p0.taille, p2.x - this.imageWidth / 2, p2.taille),
+          this.average(this.imageWidth / 2 - p1.x, p1.taille, p3.x - this.imageWidth / 2, p3.taille),
+          this.average(-p0.z, p0.taille, -p1.z, p1.taille, -p2.z, p2.taille, -p3.z, p3.taille)
+        );
+      });
+      // console.log(points);
+
+      // calculate max and min X and Y
+      const max = points.reduce((m, p) => {
+        m.x = Number.isNaN(p.x) ? m.x : m.x > p.x ? m.x : p.x;
+        m.y = Number.isNaN(p.y) ? m.y : m.y > p.y ? m.y : p.y;
+        m.z = Number.isNaN(p.z) ? m.z : m.z > p.z ? m.z : p.z;
+        return m;
+      }, new Point(-Infinity, -Infinity, -Infinity));
+      const min = points.reduce((m, p) => {
+        m.x = Number.isNaN(p.x) ? m.x : m.x < p.x ? m.x : p.x;
+        m.y = Number.isNaN(p.y) ? m.y : m.y < p.y ? m.y : p.y;
+        m.z = Number.isNaN(p.z) ? m.z : m.z < p.z ? m.z : p.z;
+        return m;
+      }, new Point(Infinity, Infinity, Infinity));
+      // console.log(JSON.stringify(points, null, 2));
+      // console.log(max);
+      // console.log(min);
+      const ratio = 2 / Math.max(max.x - min.x, max.y - min.y);
+      points.forEach((p) => {
+        p.x = (p.x - (max.x + min.x) / 2) * ratio;
+        p.y = (p.y - (max.y + min.y) / 2) * ratio;
+        p.z = (p.z - min.z) * ratio;
+      });
+      console.log(points);
+
+      resolve(points);
+    });
+  }
+
+  /**
+   * Save the points to backend
+   */
+  async savePoints(points: Point[]): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.configService.isDontSaveCsvToBackend()) {
+        this.pointsService
+          .sendPointsToBackend(points)
+          .then((s) => {
+            console.log(s);
+            resolve();
+          })
+          .catch((reason) => {
+            this.notificationService.launchNotif_ERROR(reason);
+            console.error(reason);
+            reject(reason);
+          });
+      } else {
+        this.notificationService.launchNotif_WARN('Conf say... do not save to backends');
+        resolve();
+      }
     });
   }
 

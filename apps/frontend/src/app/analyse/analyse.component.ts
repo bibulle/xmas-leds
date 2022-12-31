@@ -39,8 +39,8 @@ export class AnalyseComponent implements OnInit {
     });
   }
 
-  public startAnalyse() {
-    this.analyseService.startAnalyse();
+  public nextStepAnalyse() {
+    this.analyseService.nextStepAnalyse();
   }
   public resetAnalyse() {
     this.analyseService.resetAnalyse();

@@ -2,7 +2,10 @@
   <div class="buttons">
     <button class="actionBtn plus" (click)="showConf = !showConf">{{ showConf ? '-' : '+' }}</button>
     <button class="actionBtn" (click)="resetAnalyse()">Reset</button>
-    <button class="actionBtn" (click)="startAnalyse()" [disabled]="advancement.status !== 0">Start analyse ({{ advancement.angle ? advancement.angle : 0 }}°)</button>
+    <button class="actionBtn analyse" (click)="nextStepAnalyse()" [disabled]="advancement.status !== 0 && advancement.status !== 3">
+      &nbsp;<span *ngIf="advancement.status === 0">Start analyse ({{ advancement.angle ? advancement.angle : 0 }}°)</span>
+      <span *ngIf="advancement.status === 3">Save</span>
+    </button>
     <div *ngIf="showConf" class="input">
       <label class="label">loadCaptureFromDisk</label>
       <div class="filler"></div>
@@ -35,6 +38,9 @@
     </div>
     <div class="state" *ngIf="advancement.status === 2">
       Calculating
+    </div>
+    <div class="state" *ngIf="advancement.status === 4">
+      Saving
     </div>
   </div>
 </div>
