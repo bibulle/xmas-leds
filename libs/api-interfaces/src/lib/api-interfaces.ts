@@ -66,7 +66,7 @@ export class Config {
   loadCaptureFromDisk = false;
   dontUseLed = false;
   waitBetweenLeds = false;
-  ledCount = 100;
+  ledCount = 200;
   dontSaveCsvToBackend = false;
 }
 
