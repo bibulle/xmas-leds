@@ -1,0 +1,73 @@
+{
+  "migrations": [
+    {
+      "cli": "nx",
+      "version": "17.1.0-beta.5",
+      "requires": {
+        "@angular/core": ">=17.0.0"
+      },
+      "description": "Update the @angular/cli package version to ~17.0.0.",
+      "factory": "./src/migrations/update-17-1-0/update-angular-cli",
+      "package": "@nx/angular",
+      "name": "update-angular-cli-version-17-0-0"
+    },
+    {
+      "cli": "nx",
+      "version": "17.1.0-beta.5",
+      "requires": {
+        "@angular/core": ">=17.0.0"
+      },
+      "description": "Rename 'browserTarget' to 'buildTarget'.",
+      "factory": "./src/migrations/update-17-1-0/browser-target-to-build-target",
+      "package": "@nx/angular",
+      "name": "rename-browser-target-to-build-target"
+    },
+    {
+      "cli": "nx",
+      "version": "17.1.0-beta.5",
+      "requires": {
+        "@angular/core": ">=17.0.0"
+      },
+      "description": "Replace usages of '@nguniversal/builders' with '@angular-devkit/build-angular'.",
+      "factory": "./src/migrations/update-17-1-0/replace-nguniversal-builders",
+      "package": "@nx/angular",
+      "name": "replace-nguniversal-builders"
+    },
+    {
+      "cli": "nx",
+      "version": "17.1.0-beta.5",
+      "requires": {
+        "@angular/core": ">=17.0.0"
+      },
+      "description": "Replace usages of '@nguniversal/' packages with '@angular/ssr'.",
+      "factory": "./src/migrations/update-17-1-0/replace-nguniversal-engines",
+      "package": "@nx/angular",
+      "name": "replace-nguniversal-engines"
+    },
+    {
+      "cli": "nx",
+      "version": "17.1.0-beta.5",
+      "requires": {
+        "@angular/core": ">=17.0.0"
+      },
+      "description": "Replace the deep imports from 'zone.js/dist/zone' and 'zone.js/dist/zone-testing' with 'zone.js' and 'zone.js/testing'.",
+      "factory": "./src/migrations/update-17-1-0/update-zone-js-deep-import",
+      "package": "@nx/angular",
+      "name": "update-zone-js-deep-import"
+    },
+    {
+      "version": "17.1.0-beta.1",
+      "description": "Updates for @typescript-utils/utils v6.9.1+",
+      "implementation": "./src/migrations/update-17-1-0/update-typescript-eslint",
+      "package": "@nx/eslint",
+      "name": "update-typescript-eslint"
+    },
+    {
+      "version": "17.1.0-beta.2",
+      "description": "Move jest executor options to nx.json targetDefaults",
+      "implementation": "./src/migrations/update-17-1-0/move-options-to-target-defaults",
+      "package": "@nx/jest",
+      "name": "move-options-to-target-defaults"
+    }
+  ]
+}
