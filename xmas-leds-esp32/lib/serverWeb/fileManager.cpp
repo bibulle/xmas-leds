@@ -58,11 +58,15 @@ void handleFileUpload() {
     // Serial.printf( "          status: %d (%d)\n", upload.status, upload.currentSize);
     if (upload.status == UPLOAD_FILE_START) {
         fsUploadFile = LittleFS.open(filename, "w");
+        if (!fsUploadFile) {
+            Serial.println("handleFileUpload: open file failed");
+            sendErrorResponse(&server, 500, "open file failed");
+        }
     } else if (upload.status == UPLOAD_FILE_WRITE) {
         fsUploadFile.write(upload.buf, upload.currentSize);
     } else if (upload.status == UPLOAD_FILE_END) { 
         fsUploadFile.close();
-        sendSuccessResponse(&server, 200, "Upload Success");
+        //sendSuccessResponse(&server, 200, "Upload Success");
     } else if (upload.status == UPLOAD_FILE_ABORTED) {
         fsUploadFile.close();
     }

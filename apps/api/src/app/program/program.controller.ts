@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import 'multer';
 import { LedsService } from '../leds/leds.service';
 import { AnimationService } from '../animation/animation.service';
+import { basename } from 'path';
 
 @Controller('program')
 export class ProgramController {
@@ -61,8 +62,9 @@ export class ProgramController {
       mkdirSync('data', { recursive: true });
 
       // Save
-      this.logger.debug(`trying to save program`);
+      this.logger.debug(`Start save program on server`);
       writeFileSync(this.getFileName(), Buffer.from(content));
+      this.logger.debug(`OK    save program on server`);
 
       resolve({ ok: 'Saved' });
     });
@@ -73,83 +75,35 @@ export class ProgramController {
   // ====================================
   @Post('/sendToTree')
   async sendToTree(@Body('program') program: LedProgram): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve, reject) => {
+    try {
       // Save program to backend
-      this.saveProgram(program)
-        .then(() => {
-          // Clear all on the tree
-          this.ledsService
-            .deleteFromStripAll()
-            .then(() => {
-              // For each animation used in the program, send it to the tree
-              program.anims
-                .filter((a) => {
-                  return program.repeat[a] !== 0;
-                })
-                .reduce((cur, anim) => {
-                  return cur.then(() => {
-                    return new Promise<string>((resolve, reject) => {
-                      this.logger.debug(`Start ${anim}`);
-                      const fileName = this.animationService.getFileName(anim);
-                      this.ledsService
-                        .uploadToStrip(anim, fileName)
-                        .then(() => {
-                          resolve(`OK   ${anim}`);
-                        })
-                        .catch((reason) => {
-                          reject(reason);
-                        });
-                    });
-                  });
-                }, Promise.resolve())
-                .then((v) => {
-                  this.logger.debug(`ALL OK   ${v}`);
-                  resolve({ok: "program saved"});
-                })
-                .catch((reason) => {
-                  reject(reason);
-                });
-            })
-            .catch((reason) => {
-              reject(reason);
-            });
-        })
-        .catch((reason) => {
-          reject(reason);
-        });
-      // .then( (ret) => {
+      await this.saveProgram(program);
 
-      //   this.ledsService.deleteFromStripAll().then;
+      // Clear all on the tree
+      await this.ledsService.deleteFromStripAll();
 
-      //   // remove all files from leds
-      //   const promises: Promise<string>[] = [];
-      //   // promises.push(this.ledsService.deleteFromStripAll());
-      //   for (let i = 0; i < 10; i++) {
-      //     promises.push(
-      //       new Promise<string>((resolve, reject) => {
-      //         this.logger.debug(`Start ${i}`);
-      //         setTimeout(() => {
-      //           this.logger.debug(`End   ${i}`);
-      //           resolve('OK');
-      //         }, 2000);
-      //       })
-      //     );
-      //   }
+      // Filter and send each animation to the tree based on repeat count
+      for (const anim of program.anims.filter((a) => program.repeat[a] !== 0)) {
+        this.logger.debug(`Start pushing ${anim} to tree`);
+        const fileName = this.animationService.getFileName(anim);
 
-      //   // let result = Promise.resolve("OK");
-      //   for (let i = 0; i < promises.length; i++) {
-      //     const p = promises[i];
-      //     await p.then(s => {
-      //       this.logger.debug(`??? ${s}   ${i}`);
-      //     });
-      //   }
-      //   resolve({ ok: 'Sended' });
+        // Upload animation to the tree
+        await this.ledsService.uploadToStrip(anim, fileName);
+        this.logger.debug(`OK    pushing ${anim} to tree`);
+      }
 
-      // })
-      // .catch((reason) => {
-      //   reject(reason);
-      // });
-    });
+      this.logger.debug(`Start pushing program to tree`);
+      await this.ledsService.uploadToStrip(basename(this.getFileName(), ".csv"), this.getFileName());
+      this.logger.debug(`OK    pushing program to tree`);
+
+
+      this.logger.debug(`ALL OK`);
+      return { ok: 'program saved' };
+    } catch (error) {
+      // Log error and reject with a reason
+      this.logger.error('Error sending program to tree', error);
+      throw error;
+    }
   }
 
   // // ====================================
