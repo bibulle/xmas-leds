@@ -61,11 +61,11 @@ void setup() {
   Serial.println();
   Serial.println("Settings done");
 
-  startRandomAnim();
+  startNextAnim();
 }
 
 void loop() {
-  //updateAnim();
+  updateAnim();
   wifi_check_status();
   handleServerWebClient();
 

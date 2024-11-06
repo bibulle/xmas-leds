@@ -85,7 +85,7 @@ void updateAnim()
     // Serial.println("close Anim File");
     closeCurrentAnimFile();
 
-    startRandomAnim();
+    startNextAnim();
 
     return;
   }
@@ -97,6 +97,10 @@ void updateAnim()
   long timeTrace = millis();
 
   String l_line = currentAnimFil.readStringUntil('\n');
+  while (l_line.startsWith("#"))
+  {
+    l_line = currentAnimFil.readStringUntil('\n');
+  }
   l_line.trim();
   // Serial.println(l_line);
 
@@ -141,7 +145,7 @@ void startAnim(String path)
 {
   Serial.printf("StartAnim '%s'\n", path.c_str());
   closeCurrentAnimFile();
-  currentAnimFil = LittleFS.open(path, "r");
+  currentAnimFil = LittleFS.open("/animations/" + path + ".csv", "r");
   if (!currentAnimFil.available() || currentAnimFil.isDirectory())
   {
     closeCurrentAnimFile();
@@ -174,7 +178,8 @@ void startRandomAnim()
   {
     if (!file.isDirectory())
     {
-      if (cpt==0) Serial.printf("Found file: '%s'\n", file.name());
+      if (cpt == 0)
+        Serial.printf("Found file: '%s'\n", file.name());
       anims[cpt] = file.path();
       cpt++;
       file.close();
@@ -187,10 +192,61 @@ void startRandomAnim()
     Serial.println("No animation found");
     return;
   }
-  //Serial.printf("Animation found %d\n", cpt);
+  // Serial.printf("Animation found %d\n", cpt);
 
   int randomNumber = random(0, 100 * cpt);
   // Serial.printf("Anim %d : '%s'\n", randomNumber, anims[randomNumber % cpt]);
 
-  // startAnim(anims[randomNumber % cpt]);
+  startAnim(anims[randomNumber % cpt]);
+}
+
+File currentProgramFile;
+
+char *currentAnimName = NULL;
+int currentAnimeCount = -1;
+
+void startNextAnim()
+{
+  Serial.println("startNextAnim");
+  // if needed replay the previous animation
+  if (currentAnimName && currentAnimeCount > 1)
+  {
+    currentAnimeCount--;
+    Serial.printf("Start animation %s (%d)\n", currentAnimName, currentAnimeCount);
+    startAnim(currentAnimName);
+    return;
+  }
+
+  // if program not loaded or ended, reload it
+  if (!currentProgramFile || !currentProgramFile.available())
+  {
+    currentProgramFile.close();
+    Serial.println("Start program");
+    currentProgramFile = LittleFS.open("/animations/program.csv", FILE_READ);
+    if (!currentProgramFile || !currentProgramFile.available())
+    {
+      Serial.printf("No program found !!\n");
+      return;
+    }
+  }
+
+  // read next line of the program
+  String line = currentProgramFile.readStringUntil('\n');
+  String animName, countS;
+
+  get_token(line, animName, 0, ' ');
+  get_token(line, countS, 1, ' ');
+  if (animName == "" || countS.toInt() == 0)
+  {
+    //Serial.printf("Wrong format in program (%s, %s)\n", animName.c_str(), countS.c_str());
+    return;
+  }
+
+  free(currentAnimName);
+  currentAnimName = (char *)malloc(animName.length() + 1);
+  strcpy(currentAnimName, animName.c_str());
+  currentAnimeCount = countS.toInt();
+
+  Serial.printf("Start animation %s (%d)\n", currentAnimName, currentAnimeCount);
+  startAnim(currentAnimName);
 }

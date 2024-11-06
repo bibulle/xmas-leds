@@ -18,6 +18,7 @@ void closeCurrentAnimFile();
 void updateAnim();
 void startAnim(String path);
 void startRandomAnim();
+void startNextAnim();
 
 void toggleStopAnimation(boolean val);
 boolean isStopAnimation();
