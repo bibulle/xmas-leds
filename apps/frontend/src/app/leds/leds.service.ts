@@ -126,8 +126,12 @@ export class LedsService {
         },
         error: (error) => {
           this.ledStatusTrigger.next(undefined);
-          this.notificationService.launchNotif_ERROR(error);
-          reject(error);
+          if (error.error && error.error.message && error.error.message.startsWith("Cannot connect to Strip")) {
+            resolve("no strip");
+          } else {
+            this.notificationService.launchNotif_ERROR(error);
+            reject(error);
+            }
         },
       });
     });

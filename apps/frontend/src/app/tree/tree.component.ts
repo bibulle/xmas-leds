@@ -1,9 +1,8 @@
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
-import { Led, Point } from '@xmas-leds/api-interfaces';
-import { Subject } from 'rxjs';
+import { Point } from '@xmas-leds/api-interfaces';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { PointsService } from '../../points/points.service';
+import { PointsService } from '../points/points.service';
 import { AnimationService } from '../animation/animation.service';
 
 @Component({
@@ -23,6 +22,9 @@ export class TreeComponent implements OnInit, AfterViewInit, OnChanges {
   private fieldOfView = 1;
   private nearClippingPlane = 1;
   private farClippingPlane = 1000;
+
+  private BACK_COLOR = new THREE.Color(0.14, 0.25, 0.18);
+  private EMPTY_COLOR = this.BACK_COLOR.clone().addScalar(0.2);
 
   private camera!: THREE.PerspectiveCamera;
   private leds: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>[] = [];
@@ -56,16 +58,17 @@ export class TreeComponent implements OnInit, AfterViewInit, OnChanges {
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0.5, 0.5, 0.5);
+    this.scene.background = this.BACK_COLOR;
 
     // axes
     const axesHelper = new THREE.AxesHelper(5);
     this.scene.add(axesHelper);
 
     // rendere
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true });
     this.renderer.setPixelRatio(devicePixelRatio);
-    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.renderer.setSize(this.canvas.clientHeight, this.canvas.clientHeight);
+    //this.renderer.setClearColor( 0x000, 0.5 ); // second param is opacity, 0 => transparent
 
     // Camera
     const aspectRatio = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -118,8 +121,8 @@ export class TreeComponent implements OnInit, AfterViewInit, OnChanges {
 
         const material = new THREE.PointsMaterial({
           size: 1,
-          color: 0x000000,
-          // transparent: true,
+          color: this.EMPTY_COLOR,
+          //transparent: true,
           // depthTest: false,
           // sizeAttenuation: true,
           opacity: 1,
@@ -134,13 +137,15 @@ export class TreeComponent implements OnInit, AfterViewInit, OnChanges {
 
   ngOnInit() {
     this.animationService.changingColor.subscribe((l) => {
+  
       if (l.index < this.leds.length) {
         if (l.r === 0 && l.g === 0 && l.b === 0) {
           this.leds[l.index].material.size = 1;
+          this.leds[l.index].material.color = this.EMPTY_COLOR;
         } else {
           this.leds[l.index].material.size = 2;
+          this.leds[l.index].material.color = new THREE.Color(this.BACK_COLOR.r + l.r / 255, this.BACK_COLOR.g + l.g / 255, this.BACK_COLOR.b + l.b / 255);
         }
-        this.leds[l.index].material.color = new THREE.Color(l.r / 255, l.g / 255, l.b / 255);
       }
 
     });

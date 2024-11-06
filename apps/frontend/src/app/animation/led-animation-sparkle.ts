@@ -1,5 +1,5 @@
 import { Color, Led, LedAnimOption, LedAnimOptionColor, LedAnimOptionNum, Point } from '@xmas-leds/api-interfaces';
-import { SlowBuffer } from 'buffer';
+// import { SlowBuffer } from 'buffer';
 import { LedAnimationAbstract } from './led-animation-abstract';
 
 export class LedAnimationSparkle extends LedAnimationAbstract {
@@ -21,7 +21,7 @@ export class LedAnimationSparkle extends LedAnimationAbstract {
   /**
    * Calculate the animations
    */
-  calculate = (points: Point[]) => {
+  calculateInternal = (points: Point[]) => {
     this.tails = [];
     this.clearFile();
     const duration = this.getOption('Duration') as number;

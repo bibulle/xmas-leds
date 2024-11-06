@@ -8,6 +8,7 @@ export abstract class LedAnimationAbstract implements LedAnimation {
   lines: Line[] = [];
 
   options: LedAnimOption[] = [];
+  lastOptions: string = '';
 
   constructor(titre: string, private animationService: AnimationService) {
     this.titre = titre;
@@ -26,10 +27,24 @@ export abstract class LedAnimationAbstract implements LedAnimation {
       return find.valueN;
     }
   }
+
   /**
    * Calculate the animations
    */
-  abstract calculate: ((points: Point[]) => void) | undefined;
+  abstract calculateInternal: ((points: Point[]) => void) | undefined;
+  calculate(points: Point[]) {
+    this.initOptions();
+    if (this.calculateInternal) {
+      this.calculateInternal(points);
+    }
+  }
+
+  initOptions(): void {
+    this.lastOptions = JSON.stringify(this.options);
+  }
+  optionsChanged(): boolean {
+    return this.lastOptions !== JSON.stringify(this.options);
+  }
 
   /**
    * Save a "line" into the animation during the calculation (internaly in the leds ans lines var)
@@ -81,25 +96,7 @@ export abstract class LedAnimationAbstract implements LedAnimation {
   /**
    * Send the animation to the leds strip (directly, without using a file)
    */
-  sendAnimToTree() {
-    this.animationService.sendAnimToTree(this.lines);
-  }
-  /**
-   * Push the animation in the leds strip
-   */
-  pushToTree() {
-    this.animationService.pushToTree(this);
-  }
-  /**
-   * Delete the animation from the leds strip
-   */
-  deleteFromTree() {
-    this.animationService.deleteFromTree(this);
-  }
-  /**
-   * Exec the animation in the leds strip
-   */
-  execOnTree() {
-    this.animationService.execOnTree(this);
+  mimicToTree() {
+    this.animationService.mimicToTree(this.lines);
   }
 }

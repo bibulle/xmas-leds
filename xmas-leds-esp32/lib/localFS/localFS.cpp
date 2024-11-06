@@ -18,12 +18,8 @@ String formatBytes(size_t bytes) {
  *********************************/
 void localFS_setup() {
 
-  if (FORMAT_FILESYSTEM) {
-    FileFS.format();
-  }
-
   // Format FileFS if not yet
-  if (!FileFS.begin(true)) {
+  if (!FileFS.begin(FORMAT_LITTLE_FS_IF_FAILED)) {
     Serial.println(F("SPIFFS/LittleFS failed! Already tried formatting."));
 
     if (!FileFS.begin()) {

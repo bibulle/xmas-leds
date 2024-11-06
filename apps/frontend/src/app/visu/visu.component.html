@@ -1,4 +1,6 @@
-<div class="command">
-  <xmas-leds-animation [points]="points"></xmas-leds-animation>
+<div class="flex flex-row w-full pt-4">
+  <div class="flex grow justify-center">
+    <xmas-leds-animation-editor [points]="points"></xmas-leds-animation-editor>
+  </div>
+  <xmas-leds-tree class="flex grow justify-center" [points]="points"></xmas-leds-tree>
 </div>
-<xmas-leds-tree [points]="points"></xmas-leds-tree>

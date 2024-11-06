@@ -5,8 +5,12 @@
 
 #include "localFS.h"
 #include "serverWeb.h"
+#include "ResponseUtils.h"
+#include "FileManager.h"
+#include "LedController.h"
 #include "strip.h"
 #include "wifiCommunication.h"
+
 
 unsigned long previousMillis1000Cycle = 0;
 unsigned long interval1000Cycle = 1000;
@@ -61,7 +65,7 @@ void setup() {
 }
 
 void loop() {
-  updateAnim();
+  //updateAnim();
   wifi_check_status();
   handleServerWebClient();
 

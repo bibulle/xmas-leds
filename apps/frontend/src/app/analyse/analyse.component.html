@@ -1,69 +1,63 @@
-<div class="header">
-  <div class="buttons">
-    <button class="actionBtn plus" (click)="showConf = !showConf">{{ showConf ? '-' : '+' }}</button>
-    <button class="actionBtn" (click)="resetAnalyse()">Reset</button>
-    <button class="actionBtn analyse" (click)="nextStepAnalyse()" [disabled]="advancement.status !== 0 && advancement.status !== 3">
-      &nbsp;<span *ngIf="advancement.status === 0">Start analyse ({{ advancement.angle ? advancement.angle : 0 }}°)</span>
-      <span *ngIf="advancement.status === 3">Save</span>
-    </button>
-    <div *ngIf="showConf" class="input">
-      <label class="label">loadCaptureFromDisk</label>
-      <div class="filler"></div>
-      <input type="checkbox" [checked]="config.loadCaptureFromDisk" (change)="toogleLoadCaptureFromDisk()" />
+<div class="h-full flex flex-row">
+  <div class="p-4 grow">
+    <div class="flex justify-center">
+      <button mat-raised-button color="primary" class="mr-4 w-24" (click)="resetAnalyse()">Reset</button>
+      <button mat-raised-button color="accent" class="w-64" (click)="nextStepAnalyse()" [disabled]="advancement.status !== 0 && advancement.status !== 3">
+        &nbsp;<span *ngIf="advancement.status === 0">Start analyse ({{ advancement.angle ? advancement.angle : 0 }}°)</span>
+        <span *ngIf="advancement.status === 3">Save</span>
+      </button>
     </div>
-    <div *ngIf="showConf" class="input">
-      <label class="label">dontUseLed</label>
-      <div class="filler"></div>
-      <input type="checkbox" [checked]="config.dontUseLed" (change)="toogleDontUseLed()" />
+    <div class="flex justify-center pt-4 text-secondary-dark">
+      <div class="state" *ngIf="advancement.status === 1">
+        Running <span>{{ advancement.angle ? advancement.angle : 0 }}°</span><span *ngIf="advancement.led"> : {{ advancement.led }}/{{ config.ledCount }}</span>
+      </div>
+      <div class="state" *ngIf="advancement.status === 2">Calculating</div>
+      <div class="state" *ngIf="advancement.status === 4">Saving</div>
     </div>
-    <div *ngIf="showConf" class="input">
-      <label class="label">waitBetweenLeds</label>
-      <div class="filler"></div>
-      <input type="checkbox" [checked]="config.waitBetweenLeds" (change)="toogleWaitBetweenLeds()" />
-    </div>
-    <div *ngIf="showConf" class="input">
-      <label class="label">ledCount</label>
-      <div class="filler"></div>
-      <input class="led-count" type="number" min="2" max="100" [value]="config.ledCount" (change)="setLedCount($event)">
-    </div>
-    <div *ngIf="showConf" class="input">
-      <label class="label">dontSaveCsvToBackend</label>
-      <div class="filler"></div>
-      <input type="checkbox" [checked]="config.dontSaveCsvToBackend" (change)="toogleDontSaveCsvToBackend()" />
-    </div>
-  </div>
-  <div class="status">
-    <div class="state" *ngIf="advancement.status === 1">
-      Running <span>{{ advancement.angle ? advancement.angle : 0 }}°</span><span *ngIf="advancement.led"> : {{ advancement.led }}/{{ config.ledCount }}</span>
-    </div>
-    <div class="state" *ngIf="advancement.status === 2">
-      Calculating
-    </div>
-    <div class="state" *ngIf="advancement.status === 4">
-      Saving
+    <div class="flex justify-center pt-4">
+      <button mat-raised-button color="primary" class="mr-4 w-24" (click)="showConf = !showConf">{{ showConf ? '-' : '+' }}</button>
+      <mat-card [class.opacity-0]="!showConf" class="mat-app-background pt-4 pr-4 pl-4 w-64">
+        <div class="flex">
+          <mat-checkbox class="" [checked]="config.loadCaptureFromDisk" (change)="toogleLoadCaptureFromDisk()">loadCaptureFromDisk</mat-checkbox>
+        </div>
+        <div class="flex">
+          <mat-checkbox class="" [checked]="config.dontUseLed" (change)="toogleDontUseLed()">dontUseLed</mat-checkbox>
+        </div>
+        <div class="flex">
+          <mat-checkbox class="" [checked]="config.waitBetweenLeds" (change)="toogleWaitBetweenLeds()">waitBetweenLeds</mat-checkbox>
+        </div>
+        <div class="flex">
+          <mat-checkbox class="" [checked]="config.dontSaveCsvToBackend" (change)="toogleDontSaveCsvToBackend()">dontSaveCsvToBackend</mat-checkbox>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field class="flex">
+            <mat-label>ledCount</mat-label>
+            <input matInput class="led-count" type="number" min="2" max="400" [value]="config.ledCount" (change)="setLedCount($event)" />
+          </mat-form-field>
+        </div>
+      </mat-card>
     </div>
   </div>
-</div>
-<div class="content">
-  <div>
-    <xmas-leds-capture *ngIf="!config.loadCaptureFromDisk"></xmas-leds-capture>
-    <div class="not-capture" *ngIf="config.loadCaptureFromDisk">
-      <img src="/assets/img/camera-off-1.svg">
+  <div class="p-4 grow">
+    <div class="flex justify-center">
+      <xmas-leds-capture *ngIf="!config.loadCaptureFromDisk"></xmas-leds-capture>
+      <div class="not-capture" *ngIf="config.loadCaptureFromDisk">
+        <img src="/assets/img/camera-off-1.svg" />
+      </div>
     </div>
-  </div>
-
-  <div class="capture" *ngIf="image">
-    <img [src]="image.toDataURL()" width="500" />
-  </div>
-  <!-- <div class="snapshot" *ngIf="grey">
+    <div class="flex justify-center pt-3" *ngIf="image">
+      <img [src]="image.toDataURL()" width="500" />
+    </div>
+    <!-- <div class="snapshot" *ngIf="grey">
   <img [src]="grey.toDataURL()"/>
 </div> -->
-  <!-- <div class="snapshot" *ngIf="mask">
+    <!-- <div class="snapshot" *ngIf="mask">
   <img [src]="mask.toDataURL()"/>
 </div> -->
-  <div class="rois">
-    <div class="roi" *ngFor="let img of roiImg">
-      <img [src]="img.toDataURL()" />
+    <div class="flex justify-center">
+      <div *ngFor="let img of roiImg">
+        <img [src]="img.toDataURL()" />
+      </div>
     </div>
   </div>
 </div>

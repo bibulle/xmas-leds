@@ -1,7 +1,6 @@
 #include <LittleFS.h>
 
-// #define FORMAT_FILESYSTEM       true
-#define FORMAT_FILESYSTEM false
+#define FORMAT_LITTLE_FS_IF_FAILED true
 
 #define FileFS LittleFS
 

@@ -1,17 +1,17 @@
 import { Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiReturn, Led, LedAnimation, Line } from '@xmas-leds/api-interfaces';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import 'multer';
 import { diskStorage } from 'multer';
-import { basename } from 'path';
 import { LedsService } from '../leds/leds.service';
+import { AnimationService } from './animation.service';
 
 @Controller('anim')
 export class AnimationController {
   readonly logger = new Logger(AnimationController.name);
 
-  constructor(private ledsService: LedsService) {
+  constructor(private ledsService: LedsService, private animationService: AnimationService) {
     // MulterModule.register({
     //   dest: './upload',
     // });
@@ -28,12 +28,21 @@ export class AnimationController {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
 
+      // Create the contents
       // console.log(lines);
       let content = '';
-      anim.lines.forEach((line) => {
+      // add anim title
+      content += `# ${anim.titre}\r\n`;
+      // add anim options
+      content += `# ${JSON.stringify(anim.options)}\r\n`;
+      // add lines
+      const ledsCount: number[] = [];
+
+      anim.lines.forEach((line, lineIndex) => {
         content += `${line.duration}, `;
-        line.leds.forEach((led, index) => {
-          content += `${index == 0 ? '' : ', '}${led.index} ${led.r} ${led.g} ${led.b}`;
+        line.leds.forEach((led, ledsIndex) => {
+          content += `${ledsIndex == 0 ? '' : ', '}${led.index} ${led.r} ${led.g} ${led.b}`;
+          ledsCount[lineIndex]= ledsIndex+1;
         });
         content += '\r\n';
       });
@@ -41,32 +50,29 @@ export class AnimationController {
 
       mkdirSync('data/animations', { recursive: true });
 
-      let currentContent = '';
-      let fileAlreadyExists = false;
-      if (existsSync(this.getFileName(anim.titre))) {
-        currentContent = readFileSync(this.getFileName(anim.titre)).toString();
-        fileAlreadyExists = true;
-      }
+      // If file exist, check if something change
+      // let currentContent = '';
+      // if (existsSync(this.getFileName(anim.titre))) {
+      //   currentContent = readFileSync(this.getFileName(anim.titre)).toString();
+      // }
+      // if (currentContent === content) {
+      //   return resolve({ ok: 'No need to save' });
+      // }
 
-      if (currentContent === content) {
-        return resolve({ ok: 'No need to save' });
-      }
+      anim.titre = anim.titre.replace(/_[0-9]*$/, '');
 
+      // Save the csv
       this.logger.debug(`trying to save anim '${anim.titre}'`);
-
       // save previous file
-      if (fileAlreadyExists) {
-        let cpt = 1;
-        while (existsSync(this.getFileName(anim.titre, cpt))) {
-          cpt++;
-        }
-        renameSync(this.getFileName(anim.titre), this.getFileName(anim.titre, cpt));
-        this.ledsService.renameAnim(basename(this.getFileName(anim.titre)), basename(this.getFileName(anim.titre, cpt))).catch((reason) => {
-          this.logger.error(reason);
-        });
+      let cpt = 1;
+      while (existsSync(this.animationService.getFileName(anim.titre, cpt))) {
+        cpt++;
       }
-
-      writeFileSync(this.getFileName(anim.titre), Buffer.from(content));
+      writeFileSync(this.animationService.getFileName(anim.titre, cpt), Buffer.from(content));
+      // rename on the esp
+      // this.ledsService.renameAnim(basename(this.getFileName(anim.titre)), basename(this.getFileName(anim.titre, cpt))).catch((reason) => {
+      //   this.logger.error(reason);
+      // });
 
       resolve({ ok: 'OK' });
     });
@@ -110,7 +116,7 @@ export class AnimationController {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
 
-      const fileName = this.getFileName(name);
+      const fileName = this.animationService.getFileName(name);
 
       if (!existsSync(fileName)) {
         throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
@@ -166,7 +172,7 @@ export class AnimationController {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
 
-      const fileName = this.getFileName(name);
+      const fileName = this.animationService.getFileName(name);
 
       this.ledsService
         .uploadToStrip(name, fileName)
@@ -267,50 +273,49 @@ export class AnimationController {
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
 
-      const fileName = this.getFileName(name);
+      const fileName = this.animationService.getFileName(name);
 
       if (!existsSync(fileName)) {
         throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
       }
 
       const lines: Line[] = [];
+      let options = [];
       const content = readFileSync(fileName).toString();
       content.split(/\r?\n/).forEach((lineStr, index) => {
-        const lineSplit = lineStr.split(/,/).map((s) => s.trim());
-
-        if (lineSplit.length > 0) {
-          const duration = +lineSplit[0];
-          const leds: Led[] = lineSplit
-            .filter((v, i) => i > 0)
-            .map((l) => {
-              const numbers = l
-                .split(/ /)
-                .map((s) => s.trim())
-                .map((v) => +v);
-              if (l === '') {
-                return undefined;
-              } else if (numbers.length != 4) {
-                this.logger.error(`line ${index + 1} : '${lineStr}'`);
-                throw new HttpException(`Format error in anim '${name}' (line ${index + 1})`, HttpStatus.INTERNAL_SERVER_ERROR);
-              }
-              return { index: numbers[0], r: numbers[1], g: numbers[2], b: numbers[3] };
-            })
-            .filter((l) => l !== undefined);
-          // this.logger.debug(leds);
-          lines.push({ duration: duration, leds: leds });
+        if (lineStr.startsWith('# ')) {
+          if (index == 1) {
+            options = JSON.parse(lineStr.replace(/^# /, ''));
+          }
+        } else {
+          const lineSplit = lineStr.split(/,/).map((s) => s.trim());
+          if (lineSplit.length > 0) {
+            const duration = +lineSplit[0];
+            const leds: Led[] = lineSplit
+              .filter((v, i) => i > 0)
+              .map((l) => {
+                const numbers = l
+                  .split(/ /)
+                  .map((s) => s.trim())
+                  .map((v) => +v);
+                if (l === '') {
+                  return undefined;
+                } else if (numbers.length != 4) {
+                  this.logger.error(`line ${index + 1} : '${lineStr}'`);
+                  throw new HttpException(`Format error in anim '${name}' (line ${index + 1})`, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                return { index: numbers[0], r: numbers[1], g: numbers[2], b: numbers[3] };
+              })
+              .filter((l) => l !== undefined);
+            // this.logger.debug(leds);
+            lines.push({ duration: duration, leds: leds });
+          }
         }
       });
 
-      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines, options:[] } });
+      resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines, options: options } });
     });
   }
 
-  // methode to get filename in the backend from an ani name
-  getFileName(name: string, id: number = undefined): string {
-    if (!id) {
-      return `data/animations/${name}.csv`;
-    } else {
-      return `data/animations/${name}_${('' + id).padStart(4, '0')}.csv`;
-    }
-  }
+ 
 }

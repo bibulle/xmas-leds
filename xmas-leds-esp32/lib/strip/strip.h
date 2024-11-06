@@ -14,8 +14,9 @@ RgbColor getPixel(uint16_t indexPixel);
 void setPixel(uint16_t indexPixel, RgbColor color);
 void setAllPixel(RgbColor color);
 
+void closeCurrentAnimFile();
 void updateAnim();
-String startAnim(String path);
+void startAnim(String path);
 void startRandomAnim();
 
 void toggleStopAnimation(boolean val);

@@ -4,5 +4,5 @@ export class LedAnimationUploaded extends LedAnimationAbstract {
   /**
    * Calculate the animations (do not exists)
    */
-  calculate = undefined;
+  calculateInternal = undefined;
 }

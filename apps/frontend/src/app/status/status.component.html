@@ -1,8 +1,9 @@
 <div class="status">
-  <div *ngIf="ledStatus" class="ok">
+  <div *ngIf="ledStatus && ledStatus.defined" class="ok text-secondary-dark">
     Led connected<span> (free : {{ freeBytes }})</span>
-    <button *ngIf="ledStatus.animOn" (click)="stopAnims()">Stop Animations</button>
-    <button *ngIf="!ledStatus.animOn" (click)="startAnims()">Start Animations</button>
+    <button mat-raised-button color="accent" class="mt-1 mb-2" *ngIf="ledStatus.animOn" (click)="stopAnims()">Stop Animations</button>
+    <button mat-raised-button color="accent" class="mt-1 mb-2" *ngIf="!ledStatus.animOn" (click)="startAnims()">Start Animations</button>
   </div>
-  <div *ngIf="!ledStatus" class="ko">Led not connected</div>
+  <div *ngIf="ledStatus && ! ledStatus.defined" class="ko text-primary-dark">Led not defined {{ledStatus.defined}}</div>
+  <div *ngIf="!ledStatus" class="ko text-primary-dark">Led not connected</div>
 </div>

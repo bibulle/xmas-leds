@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Led, Point } from '@xmas-leds/api-interfaces';
-import { Subject } from 'rxjs';
+import { Point } from '@xmas-leds/api-interfaces';
 import { PointsService } from '../points/points.service';
 
 @Component({

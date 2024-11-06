@@ -10,7 +10,7 @@ import { AnalyseService } from './analyse.service';
   templateUrl: './analyse.component.html',
   styleUrls: ['./analyse.component.scss'],
 })
-export class AnalyseComponent implements OnInit {
+export class AnalyzeComponent implements OnInit {
   showConf = false;
   config: Config = new Config();
 
@@ -36,6 +36,7 @@ export class AnalyseComponent implements OnInit {
     });
     this.configService.getObservable().subscribe((a) => {
       this.config = a;
+      console.log(this.config);
     });
   }
 

@@ -10,6 +10,7 @@ export class ApiReturn {
   status?: LedsStatus;
   animations?: string[];
   anim?: LedAnimation;
+  program?: LedProgram;
   // id_token?: string;
   // version?: Version;
   // user?: UserAPI;
@@ -99,6 +100,7 @@ export class Color {
   }
   static toString(c: Color): string {
     return `rgb(${c.r}, ${c.g}, ${c.b})`;
+    // return `#${c.r.toString(16).padStart(2, '0')}${c.g.toString(16).padStart(2, '0')}${c.b.toString(16).padStart(2, '0')}`;
   }
   static fromString(s: string): Color {
     const re1 = /^rgb[(] *([0-9]+) *, *([0-9]+) *, *([0-9]+) *[)]$/i;
@@ -121,6 +123,7 @@ export class Line {
 }
 
 export class LedsStatus {
+  defined = true;
   up?: number;
   heapSize?: number;
   heapFree?: number;
@@ -128,7 +131,7 @@ export class LedsStatus {
   heapMax?: number;
   totalBytes?: number;
   usedBytes?: number;
-  animOn = true;
+  animOn? = true;
 }
 
 export class savedAnimation {}
@@ -140,15 +143,19 @@ export interface LedAnimation {
   lines: Line[];
 
   options: LedAnimOption[];
+  // optionsSummary?: {name:string, valueN:number, valueS:string}[];
 
   calculate?(points: Point[]): void;
-  sendAnimToTree?(): void;
+  calculateInternal?(points: Point[]): void;
+  initOptions?(): void;
+  optionsChanged?(): boolean;
+  mimicToTree?(): void;
   saveFileToBackend?(): void;
   deleteFileFromBackend?(): void;
   visuFromBackend?(): void;
-  pushToTree?(): void;
-  deleteFromTree?(): void;
-  execOnTree?(): void;
+  // pushToTree?(): void;
+  // deleteFromTree?(): void;
+  // execOnTree?(): void;
 }
 export abstract class LedAnimOption {
   name = 'foo';
@@ -186,6 +193,20 @@ export class LedAnimOptionColor extends LedAnimOption {
   }
 }
 
+export class LedAnimOptionEmpty extends LedAnimOption {
+  type = LedAnimOptionType.EMPTY;
+
+  constructor() {
+    super();
+    // this.name = name;
+  }
+}
+
+export class LedProgram {
+  repeat: { [id: string]: number } = {};
+  anims: string[] = [];
+}
+
 export class Notif {
   level: NotifLevel = NotifLevel.OK;
   msg = '';
@@ -206,4 +227,5 @@ export enum NotifLevel {
 export enum LedAnimOptionType {
   NUMBER,
   COLOR,
+  EMPTY,
 }

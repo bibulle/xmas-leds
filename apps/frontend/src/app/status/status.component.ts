@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LedsStatus } from '@xmas-leds/api-interfaces';
 import { LedsService } from '../leds/leds.service';
-import { AnimationService } from '../visu/animation/animation.service';
+import { AnimationService } from '../animation/animation.service';
 
 @Component({
   selector: 'xmas-leds-status',

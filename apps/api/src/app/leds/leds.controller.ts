@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiReturn, Led } from '@xmas-leds/api-interfaces';
 import { LedsService } from './leds.service';
 
@@ -7,23 +8,19 @@ import { LedsService } from './leds.service';
 export class LedsController {
   readonly logger = new Logger(LedsController.name);
 
-  constructor(private httpService: HttpService, private ledsService: LedsService) {}
+  constructor(private httpService: HttpService, private ledsService: LedsService, private _configService: ConfigService) {}
 
   // ====================================
   // route getting status of ESP
   // ====================================
   @Get('/getStatus')
   async getLedStatus(): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve, reject) => {
-      this.ledsService
-        .getStatus()
-        .then((s) => {
-          resolve({ status: s });
-        })
-        .catch((reason) => {
-          reject(reason);
-        });
-    });
+    if (!this._configService.get('LEDS_IP')) {
+      return { status: { defined: false } };
+    }
+    const s = await this.ledsService.getStatus();
+    s.defined = true;
+    return { status: s };
   }
 
   // ====================================
@@ -31,16 +28,8 @@ export class LedsController {
   // ====================================
   @Get('/clear')
   async clearLeds(): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve, reject) => {
-      this.ledsService
-        .clearStrip()
-        .then((m) => {
-          resolve({ ok: m });
-        })
-        .catch((reason) => {
-          reject(reason);
-        });
-    });
+    const m = await this.ledsService.clearStrip();
+    return { ok: m };
   }
 
   // ====================================
@@ -48,19 +37,11 @@ export class LedsController {
   // ====================================
   @Post('/change')
   async changeLeds(@Body('leds') leds: Led[]): Promise<ApiReturn> {
-    return new Promise<ApiReturn>((resolve, reject) => {
-      if (!leds) {
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
-      }
+    if (!leds) {
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
 
-      this.ledsService
-        .changeStrip(leds)
-        .then((m) => {
-          resolve({ ok: m });
-        })
-        .catch((reason) => {
-          reject(reason);
-        });
-    });
+    const m = await this.ledsService.changeStrip(leds);
+    return { ok: m };
   }
 }

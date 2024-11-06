@@ -1,0 +1,59 @@
+<div class="flex flex-col">
+  <mat-accordion class="" multi>
+    @for (anim of program.anims; track anim) {
+    <mat-expansion-panel class="border-x-neutral-light border-x-4" [class.opacity-60]="getRepeatAnim(anim) === 0" [class.border-x-primary-dark]="anim === animRunning">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="flex flex-row">
+            <mat-icon *ngIf="$index === 0" class="pr-8"></mat-icon>
+            <mat-icon *ngIf="$index !== 0" color="accent" class="pr-8" (click)="swapAnim($index, $event)">swap_vert</mat-icon>
+
+            <div class="">{{ anim }}</div>
+          </div>
+        </mat-panel-title>
+        <mat-panel-description>
+          <div class="w-4" *ngIf="getRepeatAnim(anim) === 0">&nbsp;</div>
+          <!-- <button mat-icon-button color="accent" class="-ml-4 -mr-4" *ngIf="getRepeatAnim(anim) !== 0" (click)="incrementRepeat(-1, anim, $event)">
+            <mat-icon class="text-sm">remove</mat-icon>
+          </button> -->
+          <mat-icon color="accent" class="-mr-2 text-base" *ngIf="getRepeatAnim(anim) !== 0" (click)="incrementRepeat(-1, anim, $event)">remove</mat-icon>
+          <div class="">{{ getRepeatAnim(anim) }}</div>
+          <!-- <button mat-icon-button color="accent" disableRipple class="-ml-4 -mr-4" (click)="incrementRepeat(1, anim, $event)">
+            <mat-icon class="text-sm">add</mat-icon>
+          </button> -->
+          <mat-icon color="accent" class="-mr-2 text-base" (click)="incrementRepeat(1, anim, $event)">add</mat-icon>
+          <div class="pr-2 pl-2">x</div>
+          <div class="flex-grow"></div>
+          <div class="">{{ getAnimDuration(anim) }} ms</div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <div class="grid grid-cols-2 pl-10">
+        @for (option of getAnim(anim)?.options; track option.name) {
+        <div *ngIf="option.type !== 2" class="pr-4">{{ option.name }}</div>
+        <div *ngIf="option.type === 0">{{ option.valueN }} {{ option.unit }}</div>
+        <div *ngIf="option.type === 1" class="border-neutral-dark border" [style.background-color]="option.valueS"></div>
+        }
+      </div>
+    </mat-expansion-panel>
+    }
+    <mat-expansion-panel hideToggle expanded="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="flex flex-row">Total</div>
+        </mat-panel-title>
+        <mat-panel-description>
+          <div class="flex-grow"></div>
+          <div class="">{{ getProgramDuration() }} ms</div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <mat-action-row>
+        <button mat-raised-button [disabled]="getProgramDuration() === 0" (click)="showProgram()">
+          <i class="fa-solid fa-lightbulb" title="Show here"></i>
+        </button>
+        <button mat-raised-button [disabled]="getProgramDuration() === 0" (click)="sendToTree()">
+          <i class="fa-solid fa-tree" title="Send to tree"></i>
+        </button>
+      </mat-action-row>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

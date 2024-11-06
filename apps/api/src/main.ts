@@ -12,14 +12,14 @@ import { ErrorFilter } from './app/interceptors/error.filter';
 import { LoggingInterceptor } from './app/interceptors/logging.interceptor';
 
 async function bootstrap() {
+  // const httpService = new HttpService();
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalFilters(new ErrorFilter());
-
+  app.useGlobalFilters(new ErrorFilter()); 
 
   const port = process.env.PORT || 3333;
   await app.listen(port);

@@ -1,4 +1,4 @@
-import { Color, Led, LedAnimOption, LedAnimOptionColor, LedAnimOptionNum, Point } from '@xmas-leds/api-interfaces';
+import { Color, Led, LedAnimOption, LedAnimOptionColor, LedAnimOptionNum, LedAnimOptionEmpty, Point } from '@xmas-leds/api-interfaces';
 import * as THREE from 'three';
 import { LedAnimationAbstract } from './led-animation-abstract';
 
@@ -7,6 +7,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
 
   override options: LedAnimOption[] = [
     new LedAnimOptionNum('Duration', 1000, 500, 10000, 'ms'),
+    new LedAnimOptionEmpty(),
     new LedAnimOptionNum('Nb step vert', 10, 1, 30, ''),
     new LedAnimOptionNum('Nb step rota', 100, 1, 200, ''),
     new LedAnimOptionNum('Rotation tot', 1800, 9, 3600, '°'),
@@ -26,7 +27,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
   /**
    * Calculate the animations
    */
-  calculate = (pointsBase: Point[]) => {
+  calculateInternal = (pointsBase: Point[]) => {
     this.tails = [];
     this.clearFile();
     const duration = this.getOption('Duration') as number;

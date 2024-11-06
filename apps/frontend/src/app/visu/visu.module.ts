@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { AnimationModule } from './animation/animation.module';
-import { TreeComponent } from './tree/tree.component';
+import { TreeModule } from '../tree/tree.module';
+import { AnimationModule } from '../animation/animation.module';
 import { VisuComponent } from './visu.component';
 
 
 
 @NgModule({
   declarations: [
-    VisuComponent,
-    TreeComponent
+    VisuComponent
   ],
   imports: [
     CommonModule,
-    AnimationModule
+    AnimationModule,
+    TreeModule
   ]
 })
 export class VisuModule { }

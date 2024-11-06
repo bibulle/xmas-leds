@@ -1,24 +1,28 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { AppComponent } from './app.component';
-import { RouterModule } from '@angular/router';
-import { appRoutes } from './app.routes';
-import { NotFoundModule } from './not-found/not-found.module';
-import { AnalyseModule } from './analyse/analyse.module';
 import { HttpClientModule } from '@angular/common/http';
-import { VisuModule } from './visu/visu.module';
-import { StatusComponent } from './status/status.component';
-import { NotificationComponent } from './notification/notification.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+import { AnalyseModule } from './analyse/analyse.module';
+import { AppComponent } from './app.component';
+import { appRoutes } from './app.routes';
 import { HeaderComponent } from './header/header.component';
+import { NotFoundModule } from './not-found/not-found.module';
+import { NotificationComponent } from './notification/notification.component';
+import { ProgModule } from './prog/prog.module';
+import { StatusComponent } from './status/status.component';
+import { TreeModule } from './tree/tree.module';
+import { VisuModule } from './visu/visu.module';
 
 @NgModule({
   declarations: [AppComponent, StatusComponent, NotificationComponent, HeaderComponent],
@@ -29,14 +33,18 @@ import { HeaderComponent } from './header/header.component';
     MatMenuModule,
     MatSidenavModule,
     MatListModule,
+    MatCardModule,
     MatIconModule,
     MatButtonModule,
     MatSlideToggleModule,
+    MatExpansionModule,
     HttpClientModule,
     RouterModule.forRoot(appRoutes, { initialNavigation: 'enabledBlocking' }),
     NotFoundModule,
     AnalyseModule,
+    TreeModule,
     VisuModule,
+    ProgModule
   ],
   providers: [],
   bootstrap: [AppComponent],

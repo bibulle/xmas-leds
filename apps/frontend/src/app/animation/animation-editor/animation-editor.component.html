@@ -1,0 +1,117 @@
+<div class="grid grid-cols-2 gap-x-4">
+  <mat-form-field class="">
+    <mat-label>Animation</mat-label>
+    <mat-select [(value)]="selectedAnim" required="true" (selectionChange)="selectAnimChange($event)">
+      @for (anim of animations; track anim.titre) {
+      <mat-option [value]="anim">{{ anim.titre }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <div class="flex justify-center items-center pb-6">
+    <button mat-raised-button class="mr-4" (click)="calculateClicked()" [disabled]="!selectedAnim?.calculateInternal">
+      <i class="fa fa-gears" [title]="selectedAnim?.existOnBackend ? 'Regenerate' : 'Generate'"></i>
+    </button>
+    <button mat-raised-button class="mr-4" (click)="selectedAnim?.mimicToTree && selectedAnim?.mimicToTree()" [disabled]="!selectedAnim?.optionsChanged || selectedAnim?.optionsChanged()">
+      <i class="fa-solid fa-lightbulb" title="Mimic on tree"></i>
+    </button>
+    <button mat-raised-button class="mr-4" (click)="selectedAnim?.saveFileToBackend && selectedAnim?.saveFileToBackend()" [disabled]="!selectedAnim?.optionsChanged || selectedAnim?.optionsChanged()">
+      <i class="fa-solid fa-floppy-disk" title="Save to server"></i>
+    </button>
+    <button mat-raised-button class="" (click)="selectedAnim?.deleteFileFromBackend && selectedAnim?.deleteFileFromBackend()" [disabled]="!selectedAnim?.existOnBackend">
+      <i class="fa-solid fa-trash" title="Delete from server"></i>
+    </button>
+  </div>
+  @for (option of selectedAnim?.options; track option.name) {
+  <mat-form-field *ngIf="option.type === 0" class="">
+    <mat-label>{{ option.name }}</mat-label>
+    <input matInput type="number" min="{{ option.min }}" max="{{ option.max }}" [(ngModel)]="option.valueN" />
+    <span matSuffix class="pr-4 relative top-2">{{ option.unit }}</span>
+  </mat-form-field>
+  <!-- <mat-form-field *ngIf="option.type === 1 && option.valueS">
+    <mat-label>{{ option.name }}</mat-label>
+    <input matInput [(colorPicker)]="option.valueS" [style.background]="option.valueS" value="&nbsp;" />
+  </mat-form-field> -->
+  <mat-form-field *ngIf="option.type === 1" class="">
+    <mat-label>{{ option.name }}</mat-label>
+    <input matInput [ngxMatColorPicker]="picker" [formControl]="colorCtrs[option.name]">
+    <ngx-mat-color-toggle matSuffix [for]="picker"></ngx-mat-color-toggle>
+    <ngx-mat-color-picker #picker ></ngx-mat-color-picker>
+  </mat-form-field>
+  <div *ngIf="option.type === 2"></div>
+  }
+
+  <!-- <hr />
+  <div class="flex flex-row">
+    <div class="border-r-2 border-r-secondary-dark border-dashed">Local</div>
+    <div class="border-r-2 border-r-secondary-dark border-dashed">Server</div>
+    <div class="border-r-2 border-r-secondary-dark border-dashed">Tree</div>
+  </div>
+  <div class="button-line" *ngFor="let anim of animations">
+    <div class="separator local"></div>
+    <div class="separator server"></div>
+    <div class="separator tree"></div>
+    <span class="label">{{ anim.titre | titlecase }}</span>
+    <button class="btn" (click)="shownOptions(anim.options, $event)" [disabled]="!anim.options || anim.options.length === 0">
+      <i class="fa fa-bars" title="Options"></i>
+    </button>
+    <button class="btn" (click)="anim.calculate && anim.calculate(points)" [disabled]="!anim.calculate">
+      <i class="fa fa-gears" [title]="anim.existOnBackend ? 'Regenerate' : 'Generate'"></i>
+    </button>
+    <button class="btn" (click)="anim.sendAnimToTree && anim.sendAnimToTree()" [disabled]="anim.lines.length === 0">
+      <i class="fa-solid fa-lightbulb" title="Mimic on tree"></i>
+    </button>
+    <button class="btn" (click)="anim.saveFileToBackend && anim.saveFileToBackend()" [disabled]="anim.lines.length === 0">
+      <i class="fa-solid fa-floppy-disk" title="Save to server"></i>
+    </button>
+    <button class="btn" (click)="anim.deleteFileFromBackend && anim.deleteFileFromBackend()" [disabled]="!anim.existOnBackend">
+      <i class="fa-solid fa-trash" title="Delete from server"></i>
+    </button>
+    <button class="btn" (click)="anim.visuFromBackend && anim.visuFromBackend()" [disabled]="!anim.existOnBackend">
+      <i class="fa-regular fa-lightbulb" title="Visu from backend"></i>
+    </button>
+    <button class="btn" (click)="anim.pushToTree && anim.pushToTree()" [disabled]="!anim.existOnBackend">
+      <i class="fa-solid fa-tree" title="Push to tree"></i>
+    </button>
+    <button class="btn" (click)="anim.deleteFromTree && anim.deleteFromTree()" [disabled]="!anim.existOnTree">
+      <i class="fa-solid fa-trash" title="Delete from tree"></i>
+    </button>
+    <button class="btn" (click)="anim.execOnTree && anim.execOnTree()" [disabled]="!anim.existOnTree">
+      <i class="fa-solid fa-lightbulb" title="Exec on tree"></i>
+    </button>
+    <div *ngIf="!anim.existOnTree" class="filler"></div>
+  </div>
+  <div class="button-line">
+    <span *ngIf="!file" class="label">&nbsp;</span>
+    <span *ngIf="file" class="label" (click)="fileUploadButtonClicked()">{{ file.name }}</span>
+    <input #inputfile class="form-control" type="file" class="inputfile" (change)="fileUploadChange($event)" />
+    <button *ngIf="!file" class="fileUploadButton" (click)="fileUploadButtonClicked()">File to upload</button>
+    <div *ngIf="file" class="filler" (click)="fileUploadButtonClicked()"></div>
+    <div *ngIf="file" class="filler" (click)="fileUploadButtonClicked()"></div>
+    <button *ngIf="file" (click)="onUpload()" class="btn btn-success">Upload</button>
+     <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div>
+    <div  class="filler"></div>
+  </div> -->
+</div>
+<!-- <div class="file">
+  <div class="line" *ngFor="let line of lines">
+    <div class="duration">{{ line.duration }}</div>
+    <div class="leds">
+      <div class="led" *ngFor="let led of line.leds; let isFirst = first">
+        <span *ngIf="!isFirst">, </span>
+        <div [style]="'background-color: rgba(' + led.r + ',' + led.g + ',' + led.b + ',0.2);'">{{ led.index }} {{ led.r }} {{ led.g }} {{ led.b }}</div>
+      </div>
+    </div>
+  </div>
+</div> -->
+<!-- <div #optionDiv class="options" [ngClass]="{ hide: optionHide }">
+  <div *ngFor="let option of options" class="option">
+    <div>{{ option.name }}</div>
+    <input *ngIf="option.type === 0" type="number" min="{{ option.min }}" max="{{ option.max }}" [(ngModel)]="option.valueN" />
+    <span *ngIf="option.type === 0" class="unit">{{ option.unit }}</span>
+    <input *ngIf="option.type === 1 && option.valueS" [(colorPicker)]="option.valueS" [style.background]="option.valueS" />
+  </div>
+  <button (click)="hideOptions()" class="btn btn-success">Done</button>
+</div> -->
