@@ -74,19 +74,19 @@ export class LedsService {
     );
   }
 
-  async uploadToStrip(name: string, path: string): Promise<string> {
+  async uploadToStrip(name: string, path: string, binary: boolean): Promise<string> {
     if (!existsSync(path)) {
       throw new HttpException('Animation not found', HttpStatus.NOT_FOUND);
     }
-    this.logger.log(path);
+    //this.logger.log(path);
 
     //--------------------------------------------
 
     const file: string = readFileSync(path).toString();
 
     let content = `-----011000010111000001101001\r\n`;
-    content += `Content-Disposition: form-data; name="file"; filename="${name}.csv"\r\n`;
-    content += `Content-Type: text/csv\r\n`;
+    content += `Content-Disposition: form-data; name="file"; filename="${name}.${binary ? 'bin' : 'csv'}"\r\n`;
+    content += `Content-Type: ${binary?'application/octet-stream': 'text/csv'}\r\n`;
     content += `\r\n`;
     content += `${file}\r\n`;
     content += `-----011000010111000001101001--\r\n\r\n`;

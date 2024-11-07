@@ -207,7 +207,7 @@ void handleFileUpload()
     {
         fsUploadFile.close();
 
-        if (upload.filename != "program.csv")
+        if (upload.filename.endsWith(".csv") && upload.filename != "program.csv")
         {
             if (convertCSVToBinary(filename.c_str()))
             {

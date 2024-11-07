@@ -1,10 +1,11 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post } from '@nestjs/common';
 import { ApiReturn, LedProgram } from '@xmas-leds/api-interfaces';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync, writeSync } from 'fs';
 import 'multer';
-import { LedsService } from '../leds/leds.service';
+import { tmpdir } from 'os';
+import { basename, join } from 'path';
 import { AnimationService } from '../animation/animation.service';
-import { basename } from 'path';
+import { LedsService } from '../leds/leds.service';
 
 @Controller('program')
 export class ProgramController {
@@ -87,21 +88,85 @@ export class ProgramController {
         this.logger.debug(`Start pushing ${anim} to tree`);
         const fileName = this.animationService.getFileName(anim);
 
+        const binaryPath = await this.convertCSVToBinary(fileName);
+
         // Upload animation to the tree
-        await this.ledsService.uploadToStrip(anim, fileName);
+        await this.ledsService.uploadToStrip(anim, binaryPath, true);
+
+        unlinkSync(binaryPath);
+
         this.logger.debug(`OK    pushing ${anim} to tree`);
       }
 
       this.logger.debug(`Start pushing program to tree`);
-      await this.ledsService.uploadToStrip(basename(this.getFileName(), ".csv"), this.getFileName());
+      await this.ledsService.uploadToStrip(basename(this.getFileName(), '.csv'), this.getFileName(), false);
       this.logger.debug(`OK    pushing program to tree`);
-
 
       this.logger.debug(`ALL OK`);
       return { ok: 'program saved' };
     } catch (error) {
       // Log error and reject with a reason
       this.logger.error('Error sending program to tree', error);
+      throw error;
+    }
+  }
+
+  async convertCSVToBinary(csvPath: string): Promise<string> {
+    //console.log(`Conversion du fichier CSV ${csvPath} en format binaire`);
+
+    // Vérification de l'extension .csv et création du chemin .bin
+    if (!csvPath.endsWith('.csv')) {
+      throw new Error("Erreur : Le fichier source doit avoir l'extension .csv");
+    }
+
+    // Création d'un fichier temporaire pour le fichier binaire
+    const binaryPath = join(tmpdir(), basename(csvPath).replace('.csv', '.bin'));
+
+    try {
+      // Lecture du fichier CSV et ouverture du fichier binaire
+      const csvData = readFileSync(csvPath, 'utf-8').split('\n');
+      const binFile = openSync(binaryPath, 'w');
+
+      for (let line of csvData) {
+        line = line.trim();
+        // Ignorer les lignes de commentaire
+        if (line.startsWith('#') || line === '') continue;
+
+        // Séparer la durée et les données LED
+        const [durationStr, ...ledDataArray] = line.split(',');
+        const duration = parseInt(durationStr);
+        const durationBuffer = Buffer.alloc(2);
+        durationBuffer.writeUInt16LE(duration);
+        writeSync(binFile, durationBuffer);
+
+        // Compter le nombre de LEDs
+        const numLeds = ledDataArray.length;
+        const numLedsBuffer = Buffer.alloc(2);
+        numLedsBuffer.writeUInt16LE(numLeds);
+        writeSync(binFile, numLedsBuffer);
+
+        // Traiter les données de chaque LED
+        for (const segment of ledDataArray) {
+          const trimmedSegment = segment.trim();
+          const [idStr, rStr, gStr, bStr] = trimmedSegment.split(' ');
+
+          // Convertir les valeurs en entiers
+          const id = parseInt(idStr);
+          const r = parseInt(rStr);
+          const g = parseInt(gStr);
+          const b = parseInt(bStr);
+
+          // Créer un buffer pour chaque LED
+          const ledBuffer = Buffer.from([id, r, g, b]);
+          writeSync(binFile, ledBuffer);
+        }
+      }
+
+      closeSync(binFile);
+      //console.log('Conversion terminée avec succès !');
+      return binaryPath;
+    } catch (error) {
+      console.error('Erreur lors de la conversion :', error);
       throw error;
     }
   }

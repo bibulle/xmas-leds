@@ -175,7 +175,7 @@ export class AnimationController {
       const fileName = this.animationService.getFileName(name);
 
       this.ledsService
-        .uploadToStrip(name, fileName)
+        .uploadToStrip(name, fileName, false)
         .then((m) => {
           resolve({ ok: m });
         })
