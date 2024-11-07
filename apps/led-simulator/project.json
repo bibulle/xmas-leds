@@ -1,0 +1,57 @@
+{
+  "name": "led-simulator",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/led-simulator/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/led-simulator",
+        "main": "apps/led-simulator/src/main.ts",
+        "tsConfig": "apps/led-simulator/tsconfig.app.json",
+        "assets": ["apps/led-simulator/src/assets"],
+        "isolatedConfig": true,
+        "webpackConfig": "apps/led-simulator/webpack.config.js"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "led-simulator:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "led-simulator:build:development"
+        },
+        "production": {
+          "buildTarget": "led-simulator:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/led-simulator/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/led-simulator/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}
