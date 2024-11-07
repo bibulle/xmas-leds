@@ -3,5 +3,8 @@
         "anims",
         "leds",
         "visu"
-    ]
+    ],
+    "files.associations": {
+        "vector": "cpp"
+    }
 }

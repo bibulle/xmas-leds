@@ -2,12 +2,18 @@
 
 #include "util.h"
 
-// NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
-NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+//NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+
+File currentProgramFile;
+
+char *currentAnimName = NULL;
+int currentAnimeCount = -1;
 
 File currentAnimFil;
 unsigned long newAnimLineTime = 0;
 uint16_t currentAnimDuration;
+
 boolean stopAnimations = false;
 
 void initStrip(void)
@@ -56,16 +62,22 @@ void setAllPixel(RgbColor color)
   strip.ClearTo(color);
 }
 
+void closeCurrentProgramFile()
+{
+  if (currentProgramFile)
+  {
+    //Serial.println("close Program File");
+    currentProgramFile.close();
+  }
+}
+
 void closeCurrentAnimFile()
 {
-
   if (currentAnimFil)
   {
-    Serial.println("close Anim File");
-
+    //Serial.println("close Anim File");
     currentAnimFil.close();
   }
-  Serial.flush();
 }
 
 void updateAnim()
@@ -96,45 +108,50 @@ void updateAnim()
 
   long timeTrace = millis();
 
-  String l_line = currentAnimFil.readStringUntil('\n');
-  while (l_line.startsWith("#"))
+  // Lire la durée de l'animation (2 octets)
+  uint16_t duration;
+  if (currentAnimFil.read((uint8_t *)&duration, sizeof(duration)) != sizeof(duration))
   {
-    l_line = currentAnimFil.readStringUntil('\n');
-  }
-  l_line.trim();
-  // Serial.println(l_line);
-
-  String durationS;
-  if (!get_token(l_line, durationS, 0, ','))
-  {
-    Serial.println(l_line);
-    Serial.println("No duration, in this line");
+    Serial.println("Erreur lors de la lecture de la durée dans le fichier binaire");
     return;
   }
-  durationS.trim();
-  // Serial.println(durationS);
-  currentAnimDuration = durationS.toInt();
+  currentAnimDuration = duration;
 
-  String led;
-  uint8_t rgb_idx = 1;
-  while (get_token(l_line, led, rgb_idx, ','))
+  // Lire le nombre de LEDs dans cette animation (2 octets)
+  uint16_t numLeds;
+  if (currentAnimFil.read((uint8_t *)&numLeds, sizeof(numLeds)) != sizeof(numLeds))
   {
-    led.trim();
-    String idS, rS, gS, bS;
-    if (get_token(led, idS, 0, ' ') && get_token(led, rS, 1, ' ') && get_token(led, gS, 2, ' ') && get_token(led, bS, 3, ' '))
+    Serial.println("Erreur lors de la lecture du nombre de LEDs dans le fichier binaire");
+    return;
+  }
+
+  // Serial.printf("updateAnim '%s' : %d, %d\n", currentAnimFil.name(), duration, numLeds);
+
+  // Lire les données de chaque LED (1 octet pour l'ID, 3 octets pour les couleurs)
+  for (uint16_t i = 0; i < numLeds; i++)
+  {
+    uint8_t id, r, g, b;
+
+    // Lire l'ID de la LED (1 octet)
+    if (currentAnimFil.read(&id, sizeof(id)) != sizeof(id))
     {
-      // Serial.printf("led %s : '%s' '%s' '%s'\n", idS, rS, gS, bS);
-      setPixel(idS.toInt(), RgbColor(rS.toInt(), gS.toInt(), bS.toInt()));
-    }
-    else
-    {
-      Serial.println(l_line);
-      Serial.printf("bad format for led %d\n", rgb_idx);
+      Serial.println("Erreur lors de la lecture de l'ID de la LED");
       return;
     }
-    rgb_idx++;
+
+    // Lire les couleurs R, G, B (1 octet chacune)
+    if (currentAnimFil.read(&r, sizeof(r)) != sizeof(r) ||
+        currentAnimFil.read(&g, sizeof(g)) != sizeof(g) ||
+        currentAnimFil.read(&b, sizeof(b)) != sizeof(b))
+    {
+      Serial.println("Erreur lors de la lecture des couleurs de la LED");
+      return;
+    }
+
+    // Mettre à jour la couleur de la LED
+    // Serial.printf("updateAnim '%s' : %d, %d - %d, %d, %d, %d\n", currentAnimFil.name(), duration, numLeds, id, r, g, b);
+    setPixel(id, RgbColor(r, g, b));
   }
-  // Serial.printf("New anim Line (analyse %d ms for %d led)\n", millis() - timeTrace, rgb_idx);
 
   // Serial.printf("\t'%s'\n", l_line.c_str());
   // analyse line, set colors and cureentduration
@@ -143,9 +160,9 @@ void updateAnim()
 }
 void startAnim(String path)
 {
-  Serial.printf("StartAnim '%s'\n", path.c_str());
+  //Serial.printf("StartAnim '%s'\n", path.c_str());
   closeCurrentAnimFile();
-  currentAnimFil = LittleFS.open("/animations/" + path + ".csv", "r");
+  currentAnimFil = LittleFS.open("/animations/" + path + ".bin", "r");
   if (!currentAnimFil.available() || currentAnimFil.isDirectory())
   {
     closeCurrentAnimFile();
@@ -200,14 +217,9 @@ void startRandomAnim()
   startAnim(anims[randomNumber % cpt]);
 }
 
-File currentProgramFile;
-
-char *currentAnimName = NULL;
-int currentAnimeCount = -1;
-
 void startNextAnim()
 {
-  Serial.println("startNextAnim");
+  //Serial.println("startNextAnim");
   // if needed replay the previous animation
   if (currentAnimName && currentAnimeCount > 1)
   {
@@ -238,7 +250,7 @@ void startNextAnim()
   get_token(line, countS, 1, ' ');
   if (animName == "" || countS.toInt() == 0)
   {
-    //Serial.printf("Wrong format in program (%s, %s)\n", animName.c_str(), countS.c_str());
+    // Serial.printf("Wrong format in program (%s, %s)\n", animName.c_str(), countS.c_str());
     return;
   }
 

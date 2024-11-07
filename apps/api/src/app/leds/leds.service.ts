@@ -101,7 +101,7 @@ export class LedsService {
         'Keep-Alive': 'timeout=10 , max=1000',
       },
       data: content,
-      timeout: 12000,
+      timeout: 120000,
     };
 
     return await lastValueFrom(
