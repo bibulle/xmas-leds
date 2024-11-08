@@ -1,4 +1,7 @@
 <div class="status">
+  <div *ngIf="progress !== null">
+    <mat-progress-bar mode="determinate" [value]="progress" color="secondary"></mat-progress-bar>
+  </div>
   <div *ngIf="ledStatus && ledStatus.defined" class="ok text-secondary-dark">
     Led connected<span> (free : {{ freeBytes }})</span>
     <button mat-raised-button color="accent" class="mt-1 mb-2" *ngIf="ledStatus.animOn" (click)="stopAnims()">Stop Animations</button>

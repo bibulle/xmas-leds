@@ -2,7 +2,11 @@
     "cSpell.words": [
         "anims",
         "leds",
-        "visu"
+        "millis",
+        "Notif",
+        "visu",
+        "websockets",
+        "xmas"
     ],
     "files.associations": {
         "vector": "cpp"

@@ -185,7 +185,7 @@ void wifi_setup() {
   initAPIPConfigStruct(WM_AP_IPconfig);
   initSTAIPConfigStruct(WM_STA_IPconfig);
 
-  ESP_WiFiManager ESP_wifiManager;
+  ESP_WiFiManager ESP_wifiManager("Garland1");
 
   ESP_wifiManager.setMinimumSignalQuality(-1);
   ESP_wifiManager.setConfigPortalChannel(0);

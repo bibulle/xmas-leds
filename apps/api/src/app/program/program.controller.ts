@@ -6,12 +6,13 @@ import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import { AnimationService } from '../animation/animation.service';
 import { LedsService } from '../leds/leds.service';
+import { StatusGateway } from '../status/status.gateway';
 
 @Controller('program')
 export class ProgramController {
   readonly logger = new Logger(ProgramController.name);
 
-  constructor(private ledsService: LedsService, private animationService: AnimationService) {
+  constructor(private ledsService: LedsService, private animationService: AnimationService, private readonly progressGateway: StatusGateway) {
     // MulterModule.register({
     //   dest: './upload',
     // });
@@ -77,14 +78,25 @@ export class ProgramController {
   @Post('/sendToTree')
   async sendToTree(@Body('program') program: LedProgram): Promise<ApiReturn> {
     try {
+
+      const cptProgressMax = program.anims.filter((a) => program.repeat[a] !== 0).length + 3;
+      let cptProgress = 0;
+
+      this.progressGateway.sendProgress(100*cptProgress++/cptProgressMax);
+
       // Save program to backend
       await this.saveProgram(program);
+
+      this.progressGateway.sendProgress(100*cptProgress++/cptProgressMax);
 
       // Clear all on the tree
       await this.ledsService.deleteFromStripAll();
 
       // Filter and send each animation to the tree based on repeat count
       for (const anim of program.anims.filter((a) => program.repeat[a] !== 0)) {
+
+        this.progressGateway.sendProgress(100*cptProgress++/cptProgressMax);
+
         this.logger.debug(`Start pushing ${anim} to tree`);
         const fileName = this.animationService.getFileName(anim);
 
@@ -98,11 +110,15 @@ export class ProgramController {
         this.logger.debug(`OK    pushing ${anim} to tree`);
       }
 
+      this.progressGateway.sendProgress(100*cptProgress++/cptProgressMax);
+
       this.logger.debug(`Start pushing program to tree`);
       await this.ledsService.uploadToStrip(basename(this.getFileName(), '.csv'), this.getFileName(), false);
       this.logger.debug(`OK    pushing program to tree`);
 
-      this.logger.debug(`ALL OK`);
+      this.progressGateway.sendProgress(100*cptProgress++/cptProgressMax);
+
+      this.logger.debug(`sendToTree fully OK`);
       return { ok: 'program saved' };
     } catch (error) {
       // Log error and reject with a reason
@@ -180,7 +196,7 @@ export class ProgramController {
   //     storage: diskStorage({
   //       destination: './data/animations/',
   //       filename: (req, file, callback) => {
-  //         callback(null, file.originalname);
+  //         callback(null, file.originalName);
   //       },
   //     }),
   //   })
@@ -356,7 +372,7 @@ export class ProgramController {
   //   });
   // }
 
-  // methode to get filename in the backend from an ani name
+  // method to get filename in the backend from an ani name
   getFileName(): string {
     return `data/program.csv`;
   }

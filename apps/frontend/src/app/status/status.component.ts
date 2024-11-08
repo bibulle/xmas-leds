@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { LedsStatus } from '@xmas-leds/api-interfaces';
 import { LedsService } from '../leds/leds.service';
 import { AnimationService } from '../animation/animation.service';
+import { StatusService } from './status.service';
 
 @Component({
   selector: 'xmas-leds-status',
@@ -12,19 +13,23 @@ export class StatusComponent implements OnInit {
   public ledStatus: LedsStatus | undefined;
   public freeBytes = '';
 
-  constructor(private ledsService: LedsService, private animationService: AnimationService) {}
+  progress: number = 0;
+
+  constructor(private ledsService: LedsService, private animationService: AnimationService, private statusService: StatusService) {}
 
   ngOnInit() {
-    this.ledsService.getStatusObservable().subscribe((s) => {
-      if ((!this.ledStatus && s) || (this.ledStatus && !s)) {
-        this.animationService.animationsListNeedRefresh.next(true);
-        // console.log("Led status change");
+    this.statusService.onProgress().subscribe((progress: number) => {
+      if (progress < 100) {
+        this.progress = progress;
+      } else {
+        this.progress = 0;
       }
-      this.ledStatus = s;
-      if (s && s.totalBytes && s.usedBytes) {
-        this.freeBytes = this.formatSize(s.totalBytes - s.usedBytes);
+    });
+    this.statusService.onStatus().subscribe((status: LedsStatus) => {
+      this.ledStatus = status;
+      if (status && status.totalBytes && status.usedBytes) {
+        this.freeBytes = this.formatSize(status.totalBytes - status.usedBytes);
       }
-
     });
   }
 

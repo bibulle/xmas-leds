@@ -1,7 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ApiReturn, Led, LedsStatus } from '@xmas-leds/api-interfaces';
-import { Observable, Subject } from 'rxjs';
+import { ApiReturn, Led } from '@xmas-leds/api-interfaces';
 import { ConfigService } from '../config.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -10,14 +9,7 @@ import { NotificationService } from '../notification/notification.service';
 })
 export class LedsService {
   constructor(private httpClient: HttpClient, private configService: ConfigService, private notificationService: NotificationService) {
-    if (!this.configService.isDontUseLedEnable()) {
-      setInterval(() => {
-        this.getStatus();
-      }, 4000);
-    }
   }
-
-  private ledStatusTrigger: Subject<LedsStatus | undefined> = new Subject<LedsStatus | undefined>();
 
   switchAllOff() {
     return new Promise<string>((resolve, reject) => {
@@ -107,39 +99,6 @@ export class LedsService {
     });
   }
 
-  getStatus(): Promise<LedsStatus | string> {
-    return new Promise<LedsStatus | string>((resolve, reject) => {
-      if (this.configService.isDontUseLedEnable()) {
-        return resolve('No done');
-      }
-      this.httpClient.get<ApiReturn>(`/api/leds/getStatus`).subscribe({
-        next: (data) => {
-          if (data && data.status) {
-            this.ledStatusTrigger.next(data.status);
-            resolve(data.status);
-          } else {
-            this.ledStatusTrigger.next(undefined);
-            this.notificationService.launchNotif_ERROR('Cannot get status from leds');
-            console.error(data);
-            reject('Cannot update rating');
-          }
-        },
-        error: (error) => {
-          this.ledStatusTrigger.next(undefined);
-          if (error.error && error.error.message && error.error.message.startsWith("Cannot connect to Strip")) {
-            resolve("no strip");
-          } else {
-            this.notificationService.launchNotif_ERROR(error);
-            reject(error);
-            }
-        },
-      });
-    });
-  }
-
-  getStatusObservable(): Observable<LedsStatus | undefined> {
-    return this.ledStatusTrigger.asObservable();
-  }
   getAnimationsList(): Promise<string[] | string> {
     return new Promise<string[] | string>((resolve, reject) => {
       if (this.configService.isDontUseLedEnable()) {
@@ -170,7 +129,6 @@ export class LedsService {
       this.httpClient.get<ApiReturn>(`/api/anim/${stop ? 'start' : 'stop'}`).subscribe({
         next: (data) => {
           // console.log(data);
-          this.getStatus();
           if (data && data.ok) {
             resolve(data.ok);
           } else {

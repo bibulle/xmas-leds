@@ -116,7 +116,7 @@ IPAddress APStaticSN = IPAddress(255, 255, 255, 0);
 #include <ESP_WiFiManager.h>  //https://github.com/khoih-prog/ESP_WiFiManager
 
 // SSID and PW for Config Portal
-String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+String ssid = "GARLAND_" + String(ESP_getChipId(), HEX);
 String password;
 
 // SSID and PW for your Router

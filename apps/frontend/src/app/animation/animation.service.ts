@@ -33,7 +33,7 @@ export class AnimationService {
 
   async visuFromBackend(anim: LedAnimation) {
     return new Promise<string>((resolve, reject) => {
-      // create body with only usefull attriubt
+      // create body with only useful attribut
 
       this.httpClient.get<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {}).subscribe({
         next: async (data) => {
@@ -80,7 +80,7 @@ export class AnimationService {
 
   saveFileToBackend(anim: LedAnimation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // create body with only usefull attriubt
+      // create body with only useful attribut
       const options = anim.options.map((o) => {
         return { name: o.name, valueN: o.valueN, valueS: o.valueS };
       });
@@ -116,7 +116,7 @@ export class AnimationService {
 
   saveProgramToBackend(program: LedProgram): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // create body with only usefull attriubt
+      // create body with only useful attribut
       // const options = anim.options.map(o => {
       //   return {name:o.name, valueN: o.valueN, valueS: o.valueS}
       // })
@@ -209,7 +209,7 @@ export class AnimationService {
 
   deleteFileFromBackend(anim: LedAnimation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // create body with only usefull attriubt
+      // create body with only useful attribut
 
       this.httpClient.delete<ApiReturn>(`/api/anim/${encodeURIComponent(anim.titre)}`, {}).subscribe({
         next: (data) => {
@@ -254,7 +254,7 @@ export class AnimationService {
 
   getAnimationFromBackend(title: string): Promise<LedAnimation> {
     return new Promise<LedAnimation>((resolve, reject) => {
-      // create body with only usefull attriubt
+      // create body with only useful attribut
 
       this.httpClient.get<ApiReturn>(`/api/anim/${encodeURIComponent(title)}`, {}).subscribe({
         next: async (data) => {

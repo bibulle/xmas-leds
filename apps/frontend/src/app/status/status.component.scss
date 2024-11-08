@@ -6,6 +6,7 @@
   justify-content: flex-end;
   .status {
     display: flex;
+    flex-direction: column;
     .ok {
       background-color: rgb(154, 253, 154);
       padding-right: 0.5em;
