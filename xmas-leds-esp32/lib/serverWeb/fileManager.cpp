@@ -238,6 +238,9 @@ void handleFileDelete()
 void handleDeleteAllFiles()
 {
     toggleStopAnimation(true);
+    setAllPixel(RgbColor(0));
+    showStrip();
+
     closeCurrentProgramFile();
     closeCurrentAnimFile();
     String path = "/animations";
