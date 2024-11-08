@@ -82,25 +82,35 @@ export class LedsService {
 
     //--------------------------------------------
 
-    const file: string = readFileSync(path).toString();
+    const boundary = '----Boundary' + Math.random().toString(16).slice(2);
 
-    let content = `-----011000010111000001101001\r\n`;
-    content += `Content-Disposition: form-data; name="file"; filename="${name}.${binary ? 'bin' : 'csv'}"\r\n`;
-    content += `Content-Type: ${binary?'application/octet-stream': 'text/csv'}\r\n`;
-    content += `\r\n`;
-    content += `${file}\r\n`;
-    content += `-----011000010111000001101001--\r\n\r\n`;
+    // Construction de l'entête multipart
+    const header =
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="file"; filename="${name}.${binary ? 'bin' : 'csv'}"\r\n` +
+      `Content-Type: ${binary ? 'application/octet-stream' : 'text/csv'}\r\n\r\n`;
+    const footer = `\r\n--${boundary}--\r\n`;
 
+    // Si le fichier est binaire, convertissez le contenu en Buffer, sinon construisez un Buffer à partir de la chaîne
+    let payload: Buffer;
+    if (binary) {
+      const fileContent: Buffer = readFileSync(path, null);
+      payload = Buffer.concat([Buffer.from(header, 'utf-8'), fileContent as Buffer, Buffer.from(footer, 'utf-8')]);
+    } else {
+      const fileContent: string = readFileSync(path, 'utf-8');
+      payload = Buffer.from(header + fileContent + footer, 'utf-8');
+    }
+    
     const options = {
       method: 'POST',
       url: `http://${this._configService.get('LEDS_IP')}/upload`,
       headers: {
         Accept: '*/*',
         'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
-        'content-type': 'multipart/form-data; boundary=---011000010111000001101001',
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
         'Keep-Alive': 'timeout=10 , max=1000',
       },
-      data: content,
+      data: payload,
       timeout: 120000,
     };
 

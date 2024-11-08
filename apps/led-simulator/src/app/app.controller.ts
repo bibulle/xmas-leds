@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // leds.controller.ts
 import { Controller, Get, Post, Delete, Query, Body, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { LedsStatus } from '@xmas-leds/api-interfaces';

@@ -138,6 +138,7 @@ void updateAnim()
       Serial.println("Erreur lors de la lecture de l'ID de la LED");
       return;
     }
+    // Serial.printf("           '%s' : %d\n", currentAnimFil.name(), id);
 
     // Lire les couleurs R, G, B (1 octet chacune)
     if (currentAnimFil.read(&r, sizeof(r)) != sizeof(r) ||

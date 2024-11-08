@@ -101,11 +101,12 @@ export class ProgramController {
         const fileName = this.animationService.getFileName(anim);
 
         const binaryPath = await this.convertCSVToBinary(fileName);
+        this.logger.debug(`binaryPath: ${binaryPath}`);
 
         // Upload animation to the tree
         await this.ledsService.uploadToStrip(anim, binaryPath, true);
 
-        unlinkSync(binaryPath);
+        //unlinkSync(binaryPath);
 
         this.logger.debug(`OK    pushing ${anim} to tree`);
       }
@@ -149,13 +150,17 @@ export class ProgramController {
         if (line.startsWith('#') || line === '') continue;
 
         // Séparer la durée et les données LED
-        const [durationStr, ...ledDataArray] = line.split(',');
+        // eslint-disable-next-line prefer-const
+        let [durationStr, ...ledDataArray] = line.split(',');
         const duration = parseInt(durationStr);
         const durationBuffer = Buffer.alloc(2);
         durationBuffer.writeUInt16LE(duration);
         writeSync(binFile, durationBuffer);
 
         // Compter le nombre de LEDs
+        if (ledDataArray.length === 1 && ledDataArray[0].trim() === "") {
+          ledDataArray = [];
+        }
         const numLeds = ledDataArray.length;
         const numLedsBuffer = Buffer.alloc(2);
         numLedsBuffer.writeUInt16LE(numLeds);

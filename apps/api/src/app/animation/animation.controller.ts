@@ -36,16 +36,41 @@ export class AnimationController {
       // add anim options
       content += `# ${JSON.stringify(anim.options)}\r\n`;
       // add lines
-      const ledsCount: number[] = [];
+
+      const previousLineMap = new Map<number, Led>();
 
       anim.lines.forEach((line, lineIndex) => {
         content += `${line.duration}, `;
-        line.leds.forEach((led, ledsIndex) => {
-          content += `${ledsIndex == 0 ? '' : ', '}${led.index} ${led.r} ${led.g} ${led.b}`;
-          ledsCount[lineIndex]= ledsIndex+1;
+        let ledWritten = 0;
+
+        line.leds = line.leds.sort((a,b)=> { return a.index - b.index; });
+
+        if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${line.leds.length}`);
+        line.leds.forEach((led) => {
+          const previousLed = previousLineMap.get(led.index);
+          if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${led.index} value ${ledWritten} ${previousLed}`);
+
+          // Vérifier si la LED a été modifiée par rapport à la ligne précédente
+          if (
+            lineIndex === 0 || // Toujours inclure la première ligne entière
+            !previousLed || // Inclure si aucune LED précédente pour comparer
+            previousLed.r !== led.r ||
+            previousLed.g !== led.g ||
+            previousLed.b !== led.b
+          ) {
+            content += `${ledWritten === 0 ? '' : ', '}${led.index} ${led.r} ${led.g} ${led.b}`;
+            ledWritten++;
+          }
         });
         content += '\r\n';
+
+        // Mettre à jour previousLineMap pour la prochaine ligne
+        previousLineMap.clear();
+        line.leds.forEach((led) => {
+          previousLineMap.set(led.index, led);
+        });
       });
+
       // this.logger.log(content);
 
       mkdirSync('data/animations', { recursive: true });
@@ -316,6 +341,4 @@ export class AnimationController {
       resolve({ anim: { titre: name, existOnBackend: true, existOnTree: false, lines: lines, options: options } });
     });
   }
-
- 
 }
