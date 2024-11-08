@@ -35,12 +35,15 @@ export class LedAnimationSparkle extends LedAnimationAbstract {
     const color4 = this.getOption('Color 4') as Color;
     const color5 = this.getOption('Color 5') as Color;
 
+    // Sort the ponts by hight
     const sortedPoints = points
       .map((p, i) => {
         return { i: i, p: p };
       })
       .sort((o1, o2) => o1.p.z - o2.p.z)
       .map((o) => o.i);
+
+    // Then we can color the leds according to the hight
     const ledsFix: Led[] = [];
     for (let index = 0; index < sortedPoints.length; index++) {
       const sortedIndex = sortedPoints[index];
@@ -65,14 +68,16 @@ export class LedAnimationSparkle extends LedAnimationAbstract {
           break;
       }
     }
-    for (let index = 0; index < 16; index++) {
-      const leds: Led[] = ledsFix.map((l) => {
-        return { index: l.index, r: (l.r * index) / 16, g: (l.g * index) / 16, b: (l.b * index) / 16 };
-      });
-      this.saveLine(100, leds);
-    }
 
+    // let's light smoothly (to be removed)
+    // for (let index = 0; index < 16; index++) {
+    //   const leds: Led[] = ledsFix.map((l) => {
+    //     return { index: l.index, r: (l.r * index) / 16, g: (l.g * index) / 16, b: (l.b * index) / 16 };
+    //   });
+    //   this.saveLine(100, leds);
+    // }
 
+    // Do the Sparkles
     let lastSparkle = -1;
     for (let index = 0; index < nbStep; index++) {
       let leds: Led[] = [...ledsFix];
@@ -88,9 +93,10 @@ export class LedAnimationSparkle extends LedAnimationAbstract {
       this.saveLine(duration / nbStep, leds);
     }
 
-    for (let index = 0; index < tailSize; index++) {
-      this.saveLine(duration / nbStep, this.manageTail([], tailSize));
-    }
+    // Go back to black (to be removed)
+    // for (let index = 0; index < tailSize; index++) {
+    //   this.saveLine(duration / nbStep, this.manageTail([], tailSize));
+    // }
 
     this.visuByLine();
     // console.log(this.lines);
