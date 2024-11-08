@@ -89,6 +89,7 @@ void updateAnim()
 
   if (stopAnimations)
   {
+    strip.ClearTo(RgbColor(0));
     closeCurrentAnimFile();
     return;
   }
