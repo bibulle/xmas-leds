@@ -55,7 +55,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
       return new Point(v.x, v.y, v.z);
     });
 
-
+    // get the size of the tree
     const maxX = points.reduce((p, c) => (p > c.x ? p : c.x), -Infinity);
     const minX = points.reduce((p, c) => (p < c.x ? p : c.x), Infinity);
     const meanX =(minX + maxX)/2;
@@ -65,14 +65,7 @@ export class LedAnimationVertical extends LedAnimationAbstract {
     const maxZ = points.reduce((p, c) => (p > c.z ? p : c.z), -Infinity);
     const minZ = points.reduce((p, c) => (p < c.z ? p : c.z), Infinity);
 
-    // const mat = new Matrix3().makeRotation(angle1);
-    // const a = new THREE.Euler((angle1 * Math.PI) / 180, (angle2 * Math.PI) / 180, (angle3 * Math.PI) / 180, 'XYZ');
-    // const b = new THREE.Vector3(0, 2, 0);
-    // console.log(a);
-    // console.log(b);
-    // b.applyEuler(a);
-    // console.log(b);
-
+    // sort the points by angle
     const sortedPoints: { index: number; angle: number }[][] = [...Array(numberOfStepsVert).keys()].map(() => []);
 
     points.forEach((p, index) => {
