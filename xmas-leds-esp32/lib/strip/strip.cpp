@@ -15,6 +15,7 @@ unsigned long newAnimLineTime = 0;
 uint16_t currentAnimDuration;
 
 boolean stopAnimations = false;
+boolean alreadyStoped = false;
 
 void initStrip(void)
 {
@@ -38,6 +39,11 @@ void showStrip(void)
 void toggleStopAnimation(boolean val)
 {
   stopAnimations = val;
+  if (stopAnimations == false) {
+    alreadyStoped = false;
+  }
+  Serial.printf("toggleStopAnimation stopAnimations: %d\n", stopAnimations);
+  Serial.printf("toggleStopAnimation alreadyStoped: %d\n", alreadyStoped);
 }
 boolean isStopAnimation()
 {
@@ -55,10 +61,12 @@ RgbColor getPixel(uint16_t indexPixel)
 }
 void setPixel(uint16_t indexPixel, RgbColor color)
 {
+  // Serial.printf("setPixel(%d/n",indexPixel);
   strip.SetPixelColor(indexPixel, color);
 }
 void setAllPixel(RgbColor color)
 {
+  Serial.println("setAllPixel");
   strip.ClearTo(color);
 }
 
@@ -89,9 +97,13 @@ void updateAnim()
 
   if (stopAnimations)
   {
-    setAllPixel(RgbColor(0));
-    showStrip();
-    closeCurrentAnimFile();
+    if (!alreadyStoped) {
+      setAllPixel(RgbColor(0));
+      showStrip();
+      closeCurrentAnimFile();
+    }
+    alreadyStoped = true;
+
     return;
   }
   if (!currentAnimFil || !currentAnimFil.available() || currentAnimFil.isDirectory())
