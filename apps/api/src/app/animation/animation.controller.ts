@@ -47,10 +47,10 @@ export class AnimationController {
           return a.index - b.index;
         });
 
-        if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${line.leds.length}`);
+        // if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${line.leds.length}`);
         line.leds.forEach((led) => {
           const previousLed = previousLineMap.get(led.index);
-          if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${led.index} value ${ledWritten} ${previousLed}`);
+          // if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${led.index} value ${ledWritten} ${previousLed}`);
 
           // Vérifier si la LED a été modifiée par rapport à la ligne précédente
           if (

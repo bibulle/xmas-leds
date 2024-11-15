@@ -1,12 +1,13 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ApiReturn, ImageAnimation, Led, LedAnimation, LedProgram, Line } from '@xmas-leds/api-interfaces';
+import { ApiReturn, ImageAnimation, Led, LedAnimation, LedAnimOptionImage, LedProgram, Line } from '@xmas-leds/api-interfaces';
 import { lastValueFrom, map, Subject } from 'rxjs';
 import { ConfigService } from '../config.service';
 import { LedsService } from '../leds/leds.service';
 import { NotificationService } from '../notification/notification.service';
 import { LedAnimationVertical } from './led-animation-vertical';
 import { LedAnimationSparkle } from './led-animation-sparkle';
+import { LedAnimationImage } from './led-animation-image';
 
 @Injectable({
   providedIn: 'root',
@@ -92,7 +93,7 @@ export class AnimationService {
     return new Promise<string>((resolve, reject) => {
       // create body with only useful attribut
       const options = anim.options.map((o) => {
-        return { name: o.name, valueN: o.valueN, valueS: o.valueS };
+        return { name: o.name, valueN: o.valueN, valueS: o.valueS, valueI: o.valueI };
       });
       const body = JSON.stringify({ anim: { titre: anim.titre, lines: anim.lines, options: options } });
       // console.log(body);
@@ -274,11 +275,14 @@ export class AnimationService {
               newAnim = new LedAnimationVertical(data.anim.titre, this);
             } else if (data.anim.titre.startsWith('Sparkle_')) {
               newAnim = new LedAnimationSparkle(data.anim.titre, this);
+            } else if (data.anim.titre.startsWith('Image_')) {
+              newAnim = new LedAnimationImage(data.anim.titre, this);
             }
             newAnim.lines = data.anim.lines;
             newAnim.options.forEach((o) => {
               o.valueN = data.anim?.options.find((v) => v.name === o.name)?.valueN;
               o.valueS = data.anim?.options.find((v) => v.name === o.name)?.valueS;
+              o.valueI = data.anim?.options.find((v) => v.name === o.name)?.valueI;
             });
             if (newAnim.initOptions) newAnim.initOptions();
 

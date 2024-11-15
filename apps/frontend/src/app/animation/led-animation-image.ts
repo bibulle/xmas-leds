@@ -60,7 +60,7 @@ export class LedAnimationImage extends LedAnimationAbstract {
 
       points.forEach((p, index) => {
         // witch height ?
-        const percentZ = (p.z - minZ) / (maxZ - minZ);
+        const percentZ = (maxZ - p.z) / (maxZ - minZ);
         const z = Math.min(Math.floor(percentZ * frame[0].length), frame[0].length - 1);
 
         // witch width  ?

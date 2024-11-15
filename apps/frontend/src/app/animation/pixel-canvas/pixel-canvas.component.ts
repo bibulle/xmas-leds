@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild, HostListener } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild, HostListener, OnDestroy } from '@angular/core';
 import { ImageAnimation } from '@xmas-leds/api-interfaces';
 
 @Component({
@@ -6,7 +6,7 @@ import { ImageAnimation } from '@xmas-leds/api-interfaces';
   templateUrl: './pixel-canvas.component.html',
   styleUrls: ['./pixel-canvas.component.css']
 })
-export class PixelCanvasComponent implements AfterViewInit {
+export class PixelCanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('animationCanvas') canvas!: ElementRef<HTMLCanvasElement>;
 
   @Input() image: ImageAnimation | undefined;

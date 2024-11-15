@@ -81,6 +81,7 @@ export class AnimationEditorComponent implements OnInit {
           }
         });
 
+      // Init first image option
       anim.options
         .filter((o) => o.type === LedAnimOptionType.IMAGE)
         .forEach((o) => {
@@ -121,7 +122,7 @@ export class AnimationEditorComponent implements OnInit {
   }
 
   onImageClick(image: ImageAnimation) {
-    console.log(`onImageClick(${image.name})`)
+    console.log(`onImageClick(${image.name})`);
     this.selectedAnim?.options
       .filter((o) => o.type === LedAnimOptionType.IMAGE)
       .forEach((o) => {
