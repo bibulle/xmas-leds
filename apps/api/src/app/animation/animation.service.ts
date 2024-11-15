@@ -5,6 +5,9 @@ import { join } from 'path';
 import { ImageCreatorAbstract } from './image-creator-abstract';
 import { ImageCreatorRainbow } from './image-creator-rainbow';
 import { ImageCreatorSnow } from './image-creator-snow';
+import { ImageCreatorDiagonale } from './image-creator-diagonale';
+import { ImageCreatorHautBas } from './image-creator-haut-bas';
+import { ImageCreatorBonbons } from './image-creator-bonbons';
 
 @Injectable()
 export class AnimationService {
@@ -45,7 +48,7 @@ export class AnimationService {
     return animations;
   }
 
-  readonly imageCreators:ImageCreatorAbstract[] = [ new ImageCreatorRainbow(), new ImageCreatorSnow ];
+  readonly imageCreators:ImageCreatorAbstract[] = [ new ImageCreatorBonbons(), new ImageCreatorHautBas(), new ImageCreatorDiagonale(), new ImageCreatorRainbow(), new ImageCreatorSnow ];
 
   async initAnimations() {
     this.logger.log('Initialisation des animations...');

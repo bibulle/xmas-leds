@@ -99,6 +99,13 @@ export class Color {
     this.g = g;
     this.b = b;
   }
+  static merge(c1:Color, c2:Color) {
+    return new Color(
+      (c1.r + c2.r)/2,
+      (c1.g + c2.g)/2,
+      (c1.b + c2.b)/2
+    );
+  }
   static toString(c: Color): string {
     return `rgb(${c.r}, ${c.g}, ${c.b})`;
     // return `#${c.r.toString(16).padStart(2, '0')}${c.g.toString(16).padStart(2, '0')}${c.b.toString(16).padStart(2, '0')}`;

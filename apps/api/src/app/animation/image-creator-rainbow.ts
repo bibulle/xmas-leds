@@ -43,7 +43,7 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
       const row = [];
       // Utilise l'offset pour décaler le gradient verticalement
       for (let x = 0; x < width; x++) {
-        const colorIndex = (y + offset) % height;
+        const colorIndex = (height - y + offset) % height;
         row.push(gradient[colorIndex]);
       }
       frame.push(row);

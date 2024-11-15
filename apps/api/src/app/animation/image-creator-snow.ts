@@ -16,7 +16,8 @@ export class ImageCreatorSnow extends ImageCreatorAbstract {
     for (let x = 0; x < height; x++) {
       let color = new Color(0, 0, 0);
       if (x < frameId) {
-        color = new Color(255, 255, 255);
+        const c = 255 * (1-(frameId-x)/height);
+        color = new Color(c, c, c);
       }
       const line = [];
       for (let y = 0; y < width; y++) {
@@ -32,7 +33,7 @@ export class ImageCreatorSnow extends ImageCreatorAbstract {
   generateAnimationFrames(width: number, height: number) {
     const frames = [];
 
-    for (let i = 0; i < height; i++) {
+    for (let i = 0; i < 2*height; i++) {
       const frame = this.createFrame(i, width, height);
       frames.push(frame);
     }
