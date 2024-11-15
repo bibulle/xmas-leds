@@ -29,8 +29,6 @@ export class ImageCreatorBonbons extends ImageCreatorAbstract {
       departs.push(width / 2 + i);
     }
     departs.forEach((depart) => {
-      this.logger.log(`depart : ${depart}`);
-
       let x = 0;
       let y = depart + height - frameId;
       for (let i = 0; i < width; i++) {
@@ -47,8 +45,6 @@ export class ImageCreatorBonbons extends ImageCreatorAbstract {
       departs.push(width / 2 + i);
     }
     departs.forEach((depart) => {
-      this.logger.log(`depart : ${depart}`);
-
       let x = 0;
       let y = depart + height - frameId;
       for (let i = 0; i < width; i++) {

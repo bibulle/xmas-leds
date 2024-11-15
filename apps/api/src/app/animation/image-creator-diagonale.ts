@@ -23,22 +23,20 @@ export class ImageCreatorDiagonale extends ImageCreatorAbstract {
     }
 
     const departs = [];
-    for (let i = 0; i < width/4; i++) {
+    for (let i = 0; i < width / 4; i++) {
       departs.push(i);
-      departs.push(width / 2+i);
+      departs.push(width / 2 + i);
     }
     departs.forEach((depart) => {
-      this.logger.log(`depart : ${depart}`);
-      
       let x = 0;
-      let y = depart+height-frameId;
+      let y = depart + height - frameId;
       for (let i = 0; i < width; i++) {
         x = (x + 1) % width;
         y = (y + 1) % height;
         frame[Math.floor(y)][Math.floor(x)] = new Color(0, 0, 255);
       }
     });
- 
+
     return frame;
   }
 

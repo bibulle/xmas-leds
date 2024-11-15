@@ -46,7 +46,7 @@ export class AnimationService {
     }
 
     return animations;
-  }
+  } 
 
   readonly imageCreators:ImageCreatorAbstract[] = [ new ImageCreatorBonbons(), new ImageCreatorHautBas(), new ImageCreatorDiagonale(), new ImageCreatorRainbow(), new ImageCreatorSnow ];
 
@@ -55,10 +55,10 @@ export class AnimationService {
     const images = await this.getAllImageAnimations();
 
     for (const imageCreator of this.imageCreators) {
-      //if (!images.find( (image) => image.name === imageCreator.name)) {
+      if (!images.find( (image) => image.name === imageCreator.name)) {
         const animation = await imageCreator.create();
         this.saveAnimationToFile(animation);
-      //}
+      }
     }
   }
 
