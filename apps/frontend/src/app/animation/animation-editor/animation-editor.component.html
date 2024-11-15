@@ -38,6 +38,25 @@
     <ngx-mat-color-picker #picker ></ngx-mat-color-picker>
   </mat-form-field>
   <div *ngIf="option.type === 2"></div>
+  <div *ngIf="option.type === 3 && option.valueI" class="pb-6 flex flex-row items-center">
+    @for (image of imageAnimations; track image.name) {
+      <div class="flex flex-col p-1" >
+        <xmas-leds-pixel-canvas 
+          *ngIf="option.valueI.name === image.name" 
+          [size]="100" 
+          [sizeHover]="100" 
+          [image]="image" 
+          title="{{image.name}}"></xmas-leds-pixel-canvas>
+        <xmas-leds-pixel-canvas 
+          *ngIf="option.valueI.name !== image.name" 
+          (click)="onImageClick(image)"
+          [size]="30"  
+          [sizeHover]="80" 
+          [image]="image" 
+          title="{{image.name}}"></xmas-leds-pixel-canvas>
+      </div>
+    }
+  </div>
   }
 
   <!-- <hr />

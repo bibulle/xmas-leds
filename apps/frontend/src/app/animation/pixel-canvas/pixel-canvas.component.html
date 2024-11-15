@@ -1,0 +1,17 @@
+<div class="flex flex-col items-center" *ngIf="image" (mouseover)="hover = true" (mouseout)="hover = false">
+  <div *ngIf="(hover?sizeHover:size)>50" class="">{{image.name}}</div>
+  
+  <!-- Afficher la "tranche" de pixels pour la frame actuelle -->
+  <div class="flex" *ngFor="let row of image.frames[currentFrame]">
+    <div class="flex" *ngFor="let color of row">
+      <div
+        class="border-t border-r border-secondary-light"
+        [ngStyle]="{
+          'background-color': 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')',
+          width: (hover?sizeHover:size) / image.frames[currentFrame][0].length + 'px',
+          height: (hover?sizeHover:size) / image.frames[currentFrame].length + 'px'
+        }"
+      ></div>
+    </div>
+  </div>
+</div>

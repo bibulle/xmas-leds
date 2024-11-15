@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ApiReturn, Led, LedAnimation, LedProgram, Line } from '@xmas-leds/api-interfaces';
-import { Subject } from 'rxjs';
+import { ApiReturn, ImageAnimation, Led, LedAnimation, LedProgram, Line } from '@xmas-leds/api-interfaces';
+import { lastValueFrom, map, Subject } from 'rxjs';
 import { ConfigService } from '../config.service';
 import { LedsService } from '../leds/leds.service';
 import { NotificationService } from '../notification/notification.service';
@@ -55,27 +55,37 @@ export class AnimationService {
     });
   }
 
+  async loadImageAnimations(): Promise<ImageAnimation[] | undefined> {
+    const animations = lastValueFrom(
+      this.httpClient.get<ApiReturn>(`/api/anim/images`, {}).pipe(
+        map((data) => {
+          return data?.images;
+        })
+      )
+    );
+    return animations;
+  }
+
   async visuByLine(lines: Line[]): Promise<void> {
     console.log(`visuByLine : ./${lines.length}`);
     return new Promise<void>((resolve) => {
       this.visuByLineIndex(lines, 0, resolve);
     });
   }
-  visuByLineIndex(lines: Line[], index:number, resolve: (value: void | PromiseLike<void>) => void): void {
-      if (index >= lines.length) {
-        console.log(`visuByLineIndex : ${index}/${lines.length} resolve`);
-        resolve();
-      } else {
-        const line = lines[index];
-        line.leds.forEach((l) => {
-          this.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
-        });
-        setTimeout(() => {
-          index += 1;
-          this.visuByLineIndex(lines, index, resolve);
-        }, line.duration);  
-      }
-    
+  visuByLineIndex(lines: Line[], index: number, resolve: (value: void | PromiseLike<void>) => void): void {
+    if (index >= lines.length) {
+      console.log(`visuByLineIndex : ${index}/${lines.length} resolve`);
+      resolve();
+    } else {
+      const line = lines[index];
+      line.leds.forEach((l) => {
+        this.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
+      });
+      setTimeout(() => {
+        index += 1;
+        this.visuByLineIndex(lines, index, resolve);
+      }, line.duration);
+    }
   }
 
   saveFileToBackend(anim: LedAnimation): Promise<string> {
@@ -132,7 +142,7 @@ export class AnimationService {
         })
         .subscribe({
           next: (data) => {
-            console.log("------------");
+            console.log('------------');
             console.log(data);
             if (data && data.ok) {
               this.notificationService.launchNotif_OK(data.ok);
@@ -204,7 +214,6 @@ export class AnimationService {
         },
       });
     });
-
   }
 
   deleteFileFromBackend(anim: LedAnimation): Promise<string> {

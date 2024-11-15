@@ -3,7 +3,7 @@ import { Color, stringInputToObject } from '@angular-material-components/color-p
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatSelectChange } from '@angular/material/select';
-import { Led, LedAnimOption, LedAnimOptionType, LedAnimation, Point } from '@xmas-leds/api-interfaces';
+import { ImageAnimation, Led, LedAnimOption, LedAnimOptionType, LedAnimation, Point } from '@xmas-leds/api-interfaces';
 import { catchError, of } from 'rxjs';
 import { LedsService } from '../../leds/leds.service';
 import { NotificationService } from '../../notification/notification.service';
@@ -11,6 +11,7 @@ import { AnimationService } from '../animation.service';
 import { LedAnimationVertical } from '../led-animation-vertical';
 import { LedAnimationSparkle } from '../led-animation-sparkle';
 import { FileUploadService } from '../file-upload/file-upload.service';
+import { LedAnimationImage } from '../led-animation-image';
 
 @Component({
   selector: 'xmas-leds-animation-editor',
@@ -32,12 +33,30 @@ export class AnimationEditorComponent implements OnInit {
   options: LedAnimOption[] = [];
   public color = '#FFFF00';
 
+  imageAnimations: ImageAnimation[] = [];
+
   constructor(private animationService: AnimationService, private ledsService: LedsService, private fileUploadService: FileUploadService, private notificationService: NotificationService) {}
 
-  public animations: LedAnimation[] = [new LedAnimationVertical('Vertical', this.animationService), new LedAnimationSparkle('Sparkle', this.animationService)];
+  public animations: LedAnimation[] = [
+    new LedAnimationVertical('Vertical', this.animationService),
+    new LedAnimationSparkle('Sparkle', this.animationService),
+    new LedAnimationImage('Image', this.animationService),
+  ];
   selectedAnim: LedAnimation | undefined;
 
   ngOnInit() {
+    this.animationService.loadImageAnimations().then((value) => {
+      if (value) {
+        this.imageAnimations = value;
+        this.selectedAnim?.options
+          .filter((o) => o.type === LedAnimOptionType.IMAGE)
+          .forEach((o) => {
+            if (!o.valueI && this.imageAnimations.length > 0) {
+              o.valueI = this.imageAnimations[0];
+            }
+          });
+      }
+    });
     this.animationService.animationsListNeedRefresh.subscribe(() => {
       // console.log("event received");
       this.refreshData();
@@ -59,6 +78,14 @@ export class AnimationEditorComponent implements OnInit {
           if (o.valueS) {
             const obj = stringInputToObject(o.valueS) as Color;
             this.colorCtrs[o.name] = new FormControl(new Color(obj.r, obj.g, obj.b, obj.a), []);
+          }
+        });
+
+      anim.options
+        .filter((o) => o.type === LedAnimOptionType.IMAGE)
+        .forEach((o) => {
+          if (!o.valueI && this.imageAnimations.length > 0) {
+            o.valueI = this.imageAnimations[0];
           }
         });
     }
@@ -87,10 +114,19 @@ export class AnimationEditorComponent implements OnInit {
           });
         }
       });
-      if (!this.animations.find(v => v.titre === this.selectedAnim?.titre)) {
+      if (!this.animations.find((v) => v.titre === this.selectedAnim?.titre)) {
         this.selectedAnim = undefined;
       }
     });
+  }
+
+  onImageClick(image: ImageAnimation) {
+    console.log(`onImageClick(${image.name})`)
+    this.selectedAnim?.options
+      .filter((o) => o.type === LedAnimOptionType.IMAGE)
+      .forEach((o) => {
+        o.valueI = image;
+      });
   }
 
   calculateClicked() {

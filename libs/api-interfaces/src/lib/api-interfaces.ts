@@ -10,6 +10,7 @@ export class ApiReturn {
   status?: LedsStatus;
   animations?: string[];
   anim?: LedAnimation;
+  images?: ImageAnimation[];
   program?: LedProgram;
   // id_token?: string;
   // version?: Version;
@@ -157,11 +158,18 @@ export interface LedAnimation {
   // deleteFromTree?(): void;
   // execOnTree?(): void;
 }
+
+export class ImageAnimation {
+  name = '';
+  frames: Color[][][] = [];
+}
+
 export abstract class LedAnimOption {
   name = 'foo';
   abstract type: LedAnimOptionType;
   valueN?: number;
   valueS?: string;
+  valueI?: ImageAnimation
 
   min?: number;
   max?: number;
@@ -190,6 +198,18 @@ export class LedAnimOptionColor extends LedAnimOption {
     super();
     this.name = name;
     this.valueS = Color.toString(defaultColor);
+  }
+}
+
+export class LedAnimOptionImage extends LedAnimOption {
+  type = LedAnimOptionType.IMAGE;
+  override valueS = '';
+
+  constructor(name: string, defaultImage?: ImageAnimation) {
+    super();
+    this.name = name;
+
+    this.valueI = defaultImage;
   }
 }
 
@@ -228,4 +248,5 @@ export enum LedAnimOptionType {
   NUMBER,
   COLOR,
   EMPTY,
+  IMAGE,
 }

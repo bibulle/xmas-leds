@@ -1,4 +1,4 @@
-import { Color, Led, LedAnimation, LedAnimOption, LedAnimOptionType, Line, Point } from '@xmas-leds/api-interfaces';
+import { Color, ImageAnimation, Led, LedAnimation, LedAnimOption, LedAnimOptionType, Line, Point } from '@xmas-leds/api-interfaces';
 import { AnimationService } from './animation.service';
 
 export abstract class LedAnimationAbstract implements LedAnimation {
@@ -17,12 +17,14 @@ export abstract class LedAnimationAbstract implements LedAnimation {
   /**
    * Get the option value
    */
-  getOption(name: string): undefined | number | Color {
+  getOption(name: string): undefined | number | Color| ImageAnimation {
     const find = this.options.find((o) => o.name.toLowerCase() === name.toLowerCase());
     if (!find) {
       return undefined;
     } else if (find.valueS && find.type === LedAnimOptionType.COLOR) {
       return Color.fromString(find.valueS);
+    } else if (find.valueI && find.type === LedAnimOptionType.IMAGE) {
+      return find.valueI as ImageAnimation;
     } else {
       return find.valueN;
     }

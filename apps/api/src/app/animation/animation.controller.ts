@@ -43,7 +43,9 @@ export class AnimationController {
         content += `${line.duration}, `;
         let ledWritten = 0;
 
-        line.leds = line.leds.sort((a,b)=> { return a.index - b.index; });
+        line.leds = line.leds.sort((a, b) => {
+          return a.index - b.index;
+        });
 
         if (lineIndex < 2) this.logger.log(`line ${lineIndex} led ${line.leds.length}`);
         line.leds.forEach((led) => {
@@ -286,6 +288,16 @@ export class AnimationController {
           reject(reason);
         });
     });
+  }
+
+  // ====================================
+  // route to get animation images from backend
+  // ====================================
+  @Get('/images')
+  async getImageAnimations(): Promise<ApiReturn> {
+    const animations = await this.animationService.getAllImageAnimations();
+
+    return { images: animations };
   }
 
   // ====================================
