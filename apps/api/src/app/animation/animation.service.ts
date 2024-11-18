@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ImageAnimation } from '@xmas-leds/api-interfaces';
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { ImageCreatorAbstract } from './image-creator-abstract';
 import { ImageCreatorRainbow } from './image-creator-rainbow';
@@ -26,16 +26,19 @@ export class AnimationService {
     }
   }
 
-  animationsDir = 'data/images';
+  imagesDir = 'data/images';
 
   // Méthode pour obtenir toutes les image-animations
   async getAllImageAnimations(): Promise<ImageAnimation[]> {
-    const files = await readdirSync(this.animationsDir);
+
+    mkdirSync(this.imagesDir, { recursive: true });
+
+    const files = await readdirSync(this.imagesDir);
     const animations = [];
 
     for (const file of files) {
       this.logger.debug(`Lecture de ${file}`);
-      const filePath = join(this.animationsDir, file);
+      const filePath = join(this.imagesDir, file);
       try {
         const data = await readFileSync(filePath, 'utf-8');
         const animation = JSON.parse(data);
@@ -64,7 +67,7 @@ export class AnimationService {
 
   saveAnimationToFile(animation: ImageAnimation) {
     // Sauvegarde l'animation dans un fichier JSON
-    const outputPath = join(this.animationsDir, `${animation.name}.json`);
+    const outputPath = join(this.imagesDir, `${animation.name}.json`);
     writeFileSync(outputPath, JSON.stringify(animation, null, 2));
   }
 
