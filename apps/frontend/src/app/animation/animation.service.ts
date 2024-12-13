@@ -67,24 +67,24 @@ export class AnimationService {
     return animations;
   }
 
-  async visuByLine(lines: Line[]): Promise<void> {
+  async visuByLine(lines: Line[], divisor = 1): Promise<void> {
     console.log(`visuByLine : ./${lines.length}`);
     return new Promise<void>((resolve) => {
-      this.visuByLineIndex(lines, 0, resolve);
+      this.visuByLineIndex(lines, 0, divisor, resolve);
     });
   }
-  visuByLineIndex(lines: Line[], index: number, resolve: (value: void | PromiseLike<void>) => void): void {
+  visuByLineIndex(lines: Line[], index: number, divisor: number, resolve: (value: void | PromiseLike<void>) => void): void {
     if (index >= lines.length) {
       console.log(`visuByLineIndex : ${index}/${lines.length} resolve`);
       resolve();
     } else {
       const line = lines[index];
       line.leds.forEach((l) => {
-        this.changingColor.next({ index: l.index, r: l.r, g: l.g, b: l.b });
+        this.changingColor.next({ index: l.index, r: l.r/divisor, g: l.g/divisor, b: l.b/divisor });
       });
       setTimeout(() => {
         index += 1;
-        this.visuByLineIndex(lines, index, resolve);
+        this.visuByLineIndex(lines, index, divisor, resolve);
       }, line.duration);
     }
   }
@@ -163,9 +163,9 @@ export class AnimationService {
     });
   }
 
-  sendProgramToTree(program: LedProgram): Promise<string> {
+  sendProgramToTree(program: LedProgram, divisor = 1): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const body = JSON.stringify({ program: program });
+      const body = JSON.stringify({ program: program, divisor: divisor });
       console.log(body);
 
       this.httpClient

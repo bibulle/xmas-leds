@@ -13,6 +13,8 @@ export class AnimationDisplayComponent implements OnInit {
 
   public animRunning = "";
 
+  divisor: number = 7;
+
   @Input() public points: Point[] = [];
 
   constructor(private animationService: AnimationService) {}
@@ -107,7 +109,7 @@ export class AnimationDisplayComponent implements OnInit {
 
   sendToTree() {
     console.log("sendToTree start")
-    this.animationService.sendProgramToTree(this.program).finally(() => {
+    this.animationService.sendProgramToTree(this.program, this.divisor).finally(() => {
       console.log("sendToTree done")
     });
   }

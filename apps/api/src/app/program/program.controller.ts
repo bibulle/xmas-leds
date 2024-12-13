@@ -76,7 +76,7 @@ export class ProgramController {
   // route to send program files to the tree
   // ====================================
   @Post('/sendToTree')
-  async sendToTree(@Body('program') program: LedProgram): Promise<ApiReturn> {
+  async sendToTree(@Body('program') program: LedProgram, @Body('divisor') divisor: number): Promise<ApiReturn> {
     try {
 
       const cptProgressMax = program.anims.filter((a) => program.repeat[a] !== 0).length + 3;
@@ -100,7 +100,7 @@ export class ProgramController {
         this.logger.debug(`Start pushing ${anim} to tree`);
         const fileName = this.animationService.getFileName(anim);
 
-        const binaryPath = await this.convertCSVToBinary(fileName);
+        const binaryPath = await this.convertCSVToBinary(fileName, divisor);
         this.logger.debug(`binaryPath: ${binaryPath}`);
 
         // Upload animation to the tree
@@ -128,7 +128,7 @@ export class ProgramController {
     }
   }
 
-  async convertCSVToBinary(csvPath: string): Promise<string> {
+  async convertCSVToBinary(csvPath: string, divisor: number): Promise<string> {
     //console.log(`Conversion du fichier CSV ${csvPath} en format binaire`);
 
     // Vérification de l'extension .csv et création du chemin .bin
@@ -173,9 +173,9 @@ export class ProgramController {
 
           // Convertir les valeurs en entiers
           const id = parseInt(idStr);
-          const r = parseInt(rStr);
-          const g = parseInt(gStr);
-          const b = parseInt(bStr);
+          const r = Math.round(parseInt(rStr)/divisor);
+          const g = Math.round(parseInt(gStr)/divisor);
+          const b = Math.round(parseInt(bStr)/divisor);
 
           // Créer un buffer pour chaque LED
           const ledBuffer = Buffer.from([id, r, g, b]);
