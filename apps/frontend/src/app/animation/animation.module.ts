@@ -12,6 +12,7 @@ import { MAT_COLOR_FORMATS, MatColorFormats, NgxMatColorPickerModule } from '@an
 import { AnimationDisplayComponent } from './animation-display/animation-display.component';
 import { MatIconModule } from '@angular/material/icon';
 import { PixelCanvasComponent } from './pixel-canvas/pixel-canvas.component';
+import { MatSliderModule } from '@angular/material/slider';
 
 export const HEX_MAT_COLOR_FORMATS: MatColorFormats = {
   display: {
@@ -20,7 +21,7 @@ export const HEX_MAT_COLOR_FORMATS: MatColorFormats = {
 }
 @NgModule({
   declarations: [AnimationEditorComponent, AnimationDisplayComponent, PixelCanvasComponent],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ColorPickerModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatButtonModule, NgxMatColorPickerModule, MatExpansionModule, MatIconModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ColorPickerModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatButtonModule, NgxMatColorPickerModule, MatExpansionModule, MatIconModule, MatSliderModule],
   exports: [AnimationEditorComponent, AnimationDisplayComponent],
   providers: [{ provide: MAT_COLOR_FORMATS, useValue: HEX_MAT_COLOR_FORMATS }],
 })

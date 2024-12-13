@@ -46,6 +46,10 @@
           <div class="">{{ getProgramDuration() }} ms</div>
         </mat-panel-description>
       </mat-expansion-panel-header>
+      <div class="flex justify-between items-center">
+        <mat-slider min="1" max="20" discrete="true"> <input matSliderThumb [(ngModel)]="divisor" #slider /></mat-slider>
+        <span class="text-xs">255 / {{ divisor }} = {{ 255 / divisor | number : '1.1-1' }}</span>
+      </div>
       <mat-action-row>
         <button mat-raised-button [disabled]="getProgramDuration() === 0" (click)="showProgram()">
           <i class="fa-solid fa-lightbulb" title="Show here"></i>
