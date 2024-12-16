@@ -24,7 +24,7 @@ export class LedAnimationImage extends LedAnimationAbstract {
     this.tails = [];
     this.clearFile();
     const duration = this.getOption('Duration') as number;
-    const images = this.getOption('Image') as ImageAnimation;
+    const imagesInit = this.getOption('Image') as ImageAnimation;
     const angle1 = this.getOption('Angle X') as number;
     const angle2 = this.getOption('Angle Y') as number;
     const angle3 = this.getOption('Angle Z') as number;
@@ -49,6 +49,10 @@ export class LedAnimationImage extends LedAnimationAbstract {
     const meanY = (minY + maxY) / 2;
     const maxZ = points.reduce((p, c) => (p > c.z ? p : c.z), -Infinity);
     const minZ = points.reduce((p, c) => (p < c.z ? p : c.z), Infinity);
+
+    console.log(imagesInit.frames);
+    const images = this.resizeImageAnimation(imagesInit, 4, 4, 10);
+    console.log(images.frames);
 
     // calculate each step
     const stepDuration = duration / images.frames.length;
@@ -114,5 +118,58 @@ export class LedAnimationImage extends LedAnimationAbstract {
     }
     const color = new Color(Math.round(color1.r * ratio + color2.r * (1 - ratio)), Math.round(color1.g * ratio + color2.g * (1 - ratio)), Math.round(color1.b * ratio + color2.b * (1 - ratio)));
     return { r: Math.max(0, color.r), g: Math.max(0, color.g), b: Math.max(0, color.b) };
+  }
+
+  resizeImageAnimation(animation: ImageAnimation, scaleX: number, scaleY: number, frameMultiplier: number): ImageAnimation {
+    const enlargedAnimation = new ImageAnimation();
+    enlargedAnimation.name = animation.name;
+
+    const originalWidth = animation.frames[0][0].length;
+    const originalHeight = animation.frames[0].length;
+    const originalFrameCount = animation.frames.length;
+
+    const newWidth = Math.round(originalWidth * scaleX);
+    const newHeight = Math.round(originalHeight * scaleY);
+    const newFrameCount = Math.round(originalFrameCount * frameMultiplier);
+
+    // Resize each frame
+    for (let f = 0; f < newFrameCount; f++) {
+      const frameIndex = (f / (newFrameCount - 1)) * (originalFrameCount - 1);
+      const lowerFrame = Math.floor(frameIndex);
+      const upperFrame = Math.min(lowerFrame + 1, originalFrameCount - 1);
+      const frameT = frameIndex - lowerFrame;
+
+      const resizedFrame: Color[][] = [];
+      for (let y = 0; y < newHeight; y++) {
+        const originalY = (y / (newHeight - 1)) * (originalHeight - 1);
+        const lowerY = Math.floor(originalY);
+        const upperY = Math.min(lowerY + 1, originalHeight - 1);
+        const yT = originalY - lowerY;
+
+        const row: Color[] = [];
+        for (let x = 0; x < newWidth; x++) {
+          const originalX = (x / (newWidth - 1)) * (originalWidth - 1);
+          const lowerX = Math.floor(originalX);
+          const upperX = Math.min(lowerX + 1, originalWidth - 1);
+          const xT = originalX - lowerX;
+
+          // Interpolate between colors
+          const c1 = Color.interpolate(animation.frames[lowerFrame][lowerY][lowerX], animation.frames[lowerFrame][lowerY][upperX], xT);
+          const c2 = Color.interpolate(animation.frames[lowerFrame][upperY][lowerX], animation.frames[lowerFrame][upperY][upperX], xT);
+          const c3 = Color.interpolate(c1, c2, yT);
+
+          const c4 = Color.interpolate(animation.frames[upperFrame][lowerY][lowerX], animation.frames[upperFrame][lowerY][upperX], xT);
+          const c5 = Color.interpolate(animation.frames[upperFrame][upperY][lowerX], animation.frames[upperFrame][upperY][upperX], xT);
+          const c6 = Color.interpolate(c4, c5, yT);
+
+          const finalColor = Color.interpolate(c3, c6, frameT);
+          row.push(finalColor);
+        }
+        resizedFrame.push(row);
+      }
+      enlargedAnimation.frames.push(resizedFrame);
+    }
+
+    return enlargedAnimation;
   }
 }

@@ -99,13 +99,14 @@ export class Color {
     this.g = g;
     this.b = b;
   }
-  static merge(c1:Color, c2:Color) {
-    return new Color(
-      (c1.r + c2.r)/2,
-      (c1.g + c2.g)/2,
-      (c1.b + c2.b)/2
-    );
+  static merge(c1: Color, c2: Color) {
+    return Color.interpolate(c1, c2, 0.5);
   }
+
+  static interpolate(c1: Color, c2: Color, t: number): Color {
+    return new Color(c1.r + (c2.r - c1.r) * t, c1.g + (c2.g - c1.g) * t, c1.b + (c2.b - c1.b) * t);
+  }
+
   static toString(c: Color): string {
     return `rgb(${c.r}, ${c.g}, ${c.b})`;
     // return `#${c.r.toString(16).padStart(2, '0')}${c.g.toString(16).padStart(2, '0')}${c.b.toString(16).padStart(2, '0')}`;
@@ -176,7 +177,7 @@ export abstract class LedAnimOption {
   abstract type: LedAnimOptionType;
   valueN?: number;
   valueS?: string;
-  valueI?: ImageAnimation
+  valueI?: ImageAnimation;
 
   min?: number;
   max?: number;
