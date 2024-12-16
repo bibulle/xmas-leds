@@ -72,7 +72,7 @@ export class LedAnimationImage extends LedAnimationAbstract {
         const x = Math.floor(((angle % 180) / 180) * frame.length);
 
         const color = frame[z][x];
-        console.log(`${index} ${x} ${z} ${color}`);
+        // console.log(`${index} ${x} ${z} ${color}`);
         leds.push({ index: index, r: color.r, g: color.g, b: color.b });
       });
       this.saveLine(stepDuration, leds);
