@@ -144,10 +144,11 @@ void updateAnim()
   // Lire les données de chaque LED (1 octet pour l'ID, 3 octets pour les couleurs)
   for (uint16_t i = 0; i < numLeds; i++)
   {
-    uint8_t id, r, g, b;
+    uint16_t id;
+    uint8_t r, g, b;
 
     // Lire l'ID de la LED (1 octet)
-    if (currentAnimFil.read(&id, sizeof(id)) != sizeof(id))
+    if (currentAnimFil.read((uint8_t *)&id, sizeof(id)) != sizeof(id))
     {
       Serial.println("Erreur lors de la lecture de l'ID de la LED");
       return;

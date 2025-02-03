@@ -107,7 +107,7 @@ bool convertCSVToBinary(const String &csvPath)
                 continue;
             }
 
-            uint8_t id = (uint8_t)segment.substring(0, space1).toInt();
+            uint16_t id = (uint16_t)segment.substring(0, space1).toInt();
             uint8_t r = (uint8_t)segment.substring(space1 + 1, space2).toInt();
             uint8_t g = (uint8_t)segment.substring(space2 + 1, space3).toInt();
             uint8_t b = (uint8_t)segment.substring(space3 + 1).toInt();

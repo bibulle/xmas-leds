@@ -178,7 +178,11 @@ export class ProgramController {
           const b = Math.round(parseInt(bStr)/divisor);
 
           // Créer un buffer pour chaque LED
-          const ledBuffer = Buffer.from([id, r, g, b]);
+          const ledBuffer = Buffer.alloc(5); // 2 octets pour ID + 3 octets pour RGB
+          ledBuffer.writeUInt16LE(id, 0);    // Écrit l'ID sur 2 octets (little-endian)
+          ledBuffer.writeUInt8(r, 2);        // Écrit R sur 1 octet
+          ledBuffer.writeUInt8(g, 3);        // Écrit G sur 1 octet
+          ledBuffer.writeUInt8(b, 4);        // Écrit B sur 1 octet
           writeSync(binFile, ledBuffer);
         }
       }
