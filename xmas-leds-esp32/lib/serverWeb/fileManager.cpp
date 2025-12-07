@@ -114,7 +114,7 @@ bool convertCSVToBinary(const String &csvPath)
 
             //Serial.printf("ID: %d, R: %d, G: %d, B: %d\n", id, r, g, b);
             // Write binary data to file
-            binFile.write(id);
+            binFile.write((uint8_t *)&id, sizeof(id));
             binFile.write(r);
             binFile.write(g);
             binFile.write(b);
