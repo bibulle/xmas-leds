@@ -139,21 +139,18 @@ void updateAnim()
     return;
   }
 
-  // Serial.printf("updateAnim '%s' : %d, %d\n", currentAnimFil.name(), duration, numLeds);
-
-  // Lire les données de chaque LED (1 octet pour l'ID, 3 octets pour les couleurs)
+  // Lire les données de chaque LED (2 octets pour l'ID, 3 octets pour les couleurs)
   for (uint16_t i = 0; i < numLeds; i++)
   {
     uint16_t id;
     uint8_t r, g, b;
 
-    // Lire l'ID de la LED (1 octet)
+    // Lire l'ID de la LED (2 octets)
     if (currentAnimFil.read((uint8_t *)&id, sizeof(id)) != sizeof(id))
     {
       Serial.println("Erreur lors de la lecture de l'ID de la LED");
       return;
     }
-    // Serial.printf("           '%s' : %d\n", currentAnimFil.name(), id);
 
     // Lire les couleurs R, G, B (1 octet chacune)
     if (currentAnimFil.read(&r, sizeof(r)) != sizeof(r) ||
@@ -164,8 +161,6 @@ void updateAnim()
       return;
     }
 
-    // Mettre à jour la couleur de la LED
-    // Serial.printf("updateAnim '%s' : %d, %d - %d, %d, %d, %d\n", currentAnimFil.name(), duration, numLeds, id, r, g, b);
     setPixel(id, RgbColor(r, g, b));
   }
 

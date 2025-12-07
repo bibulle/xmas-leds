@@ -129,8 +129,6 @@ export class ProgramController {
   }
 
   async convertCSVToBinary(csvPath: string, divisor: number): Promise<string> {
-    //console.log(`Conversion du fichier CSV ${csvPath} en format binaire`);
-
     // Vérification de l'extension .csv et création du chemin .bin
     if (!csvPath.endsWith('.csv')) {
       throw new Error("Erreur : Le fichier source doit avoir l'extension .csv");
@@ -153,8 +151,11 @@ export class ProgramController {
         // eslint-disable-next-line prefer-const
         let [durationStr, ...ledDataArray] = line.split(',');
         const duration = parseInt(durationStr);
+
+        // Write duration as Little-Endian (LSB first)
         const durationBuffer = Buffer.alloc(2);
-        durationBuffer.writeUInt16LE(duration);
+        durationBuffer[0] = duration & 0xFF;        // Low byte
+        durationBuffer[1] = (duration >> 8) & 0xFF; // High byte
         writeSync(binFile, durationBuffer);
 
         // Compter le nombre de LEDs
@@ -162,8 +163,11 @@ export class ProgramController {
           ledDataArray = [];
         }
         const numLeds = ledDataArray.length;
+
+        // Write numLeds as Little-Endian (LSB first)
         const numLedsBuffer = Buffer.alloc(2);
-        numLedsBuffer.writeUInt16LE(numLeds);
+        numLedsBuffer[0] = numLeds & 0xFF;        // Low byte
+        numLedsBuffer[1] = (numLeds >> 8) & 0xFF; // High byte
         writeSync(binFile, numLedsBuffer);
 
         // Traiter les données de chaque LED
@@ -177,12 +181,14 @@ export class ProgramController {
           const g = Math.round(parseInt(gStr)/divisor);
           const b = Math.round(parseInt(bStr)/divisor);
 
-          // Créer un buffer pour chaque LED
+          // Créer un buffer pour chaque LED - write bytes explicitly as Little-Endian
           const ledBuffer = Buffer.alloc(5); // 2 octets pour ID + 3 octets pour RGB
-          ledBuffer.writeUInt16LE(id, 0);    // Écrit l'ID sur 2 octets (little-endian)
-          ledBuffer.writeUInt8(r, 2);        // Écrit R sur 1 octet
-          ledBuffer.writeUInt8(g, 3);        // Écrit G sur 1 octet
-          ledBuffer.writeUInt8(b, 4);        // Écrit B sur 1 octet
+          ledBuffer[0] = id & 0xFF;        // ID Low byte
+          ledBuffer[1] = (id >> 8) & 0xFF; // ID High byte
+          ledBuffer[2] = r;                // R
+          ledBuffer[3] = g;                // G
+          ledBuffer[4] = b;                // B
+
           writeSync(binFile, ledBuffer);
         }
       }
