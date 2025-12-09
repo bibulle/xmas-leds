@@ -1,0 +1,66 @@
+.admin-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    margin-bottom: 30px;
+    font-size: 2rem;
+    font-weight: 500;
+  }
+}
+
+.admin-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.admin-card {
+  mat-card-header {
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5rem;
+    }
+  }
+
+  mat-card-content {
+    margin-top: 16px;
+    margin-bottom: 16px;
+
+    p {
+      margin-bottom: 16px;
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    mat-list {
+      mat-list-item {
+        mat-icon {
+          color: green;
+        }
+      }
+    }
+
+    mat-progress-bar {
+      margin-top: 16px;
+    }
+  }
+
+  mat-card-actions {
+    padding: 16px;
+
+    button {
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    grid-template-columns: 1fr;
+  }
+}
