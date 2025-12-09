@@ -7,9 +7,10 @@ import { GeometryModule } from './geometry/geometry.module';
 import { ImageModule } from './image/image.module';
 import { LedsModule } from './leds/leds.module';
 import { ProgramModule } from './program/program.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), ImageModule, LedsModule, GeometryModule, AnimationModule, ProgramModule],
+  imports: [ScheduleModule.forRoot(), ImageModule, LedsModule, GeometryModule, AnimationModule, ProgramModule, AdminModule],
   controllers: [AppController],
   providers: [],
 })

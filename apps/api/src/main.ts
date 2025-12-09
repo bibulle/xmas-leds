@@ -16,10 +16,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  app.use(json({ limit: '50mb' }));
-  app.use(urlencoded({ extended: true, limit: '50mb' }));
+  app.use(json({ limit: '500mb' }));
+  app.use(urlencoded({ extended: true, limit: '500mb' }));
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalFilters(new ErrorFilter()); 
+  app.useGlobalFilters(new ErrorFilter());
 
   const port = process.env.PORT || 3333;
   await app.listen(port);

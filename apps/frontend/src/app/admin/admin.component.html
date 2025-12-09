@@ -1,0 +1,92 @@
+<div class="admin-container">
+  <h1>Administration</h1>
+
+  <div class="admin-content">
+    <!-- Export Section -->
+    <mat-card class="admin-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>download</mat-icon>
+          Exporter les données
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          Télécharger toutes les données importantes du système (arbre, animations, images, programme)
+          dans un fichier ZIP pour backup ou debug en local.
+        </p>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Positions LED (xmas-tree-leds.csv)</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Animations (*.csv)</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Images d'animation (*.json)</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Programme (program.csv)</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Images capturées (arbre/*.jpg)</span>
+          </mat-list-item>
+        </mat-list>
+
+        <mat-progress-bar *ngIf="downloading" mode="indeterminate"></mat-progress-bar>
+      </mat-card-content>
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="downloadAllData()"
+          [disabled]="downloading || uploading"
+        >
+          <mat-icon>file_download</mat-icon>
+          Télécharger tout
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Import Section -->
+    <mat-card class="admin-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>upload</mat-icon>
+          Importer les données
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          Restaurer les données depuis un fichier ZIP exporté précédemment.
+          <strong>Attention :</strong> cela remplacera les données existantes.
+        </p>
+
+        <mat-progress-bar *ngIf="uploading" mode="indeterminate"></mat-progress-bar>
+      </mat-card-content>
+      <mat-card-actions>
+        <input
+          type="file"
+          #fileInput
+          accept=".zip"
+          (change)="onFileSelected($event)"
+          style="display: none"
+        />
+        <button
+          mat-raised-button
+          color="accent"
+          (click)="fileInput.click()"
+          [disabled]="uploading || downloading"
+        >
+          <mat-icon>file_upload</mat-icon>
+          Choisir un fichier ZIP
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
