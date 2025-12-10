@@ -7,18 +7,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     MatProgressBarModule,
     MatSnackBarModule,
     MatListModule,
+    MatSelectModule,
+    MatFormFieldModule,
   ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
@@ -26,6 +32,15 @@ import { MatListModule } from '@angular/material/list';
 export class AdminComponent {
   uploading = false;
   downloading = false;
+  uploadingIndividual = false;
+
+  fileTypes = [
+    { value: 'led-positions', label: 'Positions LED (xmas-tree-leds.csv)', accept: '.csv' },
+    { value: 'program', label: 'Programme (program.csv)', accept: '.csv' },
+    { value: 'animation', label: 'Animation (*.csv)', accept: '.csv' },
+    { value: 'image', label: 'Image d\'animation (*.json)', accept: '.json' },
+    { value: 'tree-image', label: 'Image capturée (*.jpg)', accept: '.jpg,.jpeg,.png' },
+  ];
 
   constructor(
     private http: HttpClient,
@@ -116,6 +131,44 @@ export class AdminComponent {
           { duration: 5000 }
         );
         this.uploading = false;
+      },
+    });
+  }
+
+  onIndividualFileSelected(event: Event, fileType: string) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    this.uploadIndividualFile(file, fileType);
+
+    // Reset input to allow uploading the same file again
+    input.value = '';
+  }
+
+  uploadIndividualFile(file: File, fileType: string) {
+    this.uploadingIndividual = true;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', fileType);
+
+    this.http.post('/api/admin/upload-file', formData).subscribe({
+      next: (response: any) => {
+        this.snackBar.open(`✓ ${response.message}`, 'OK', {
+          duration: 3000,
+        });
+        this.uploadingIndividual = false;
+      },
+      error: (error) => {
+        console.error('Error uploading file:', error);
+        this.snackBar.open(
+          `✗ Erreur: ${error.error?.message || error.message}`,
+          'OK',
+          { duration: 5000 }
+        );
+        this.uploadingIndividual = false;
       },
     });
   }

@@ -59,6 +59,27 @@
   }
 }
 
+.file-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.file-type-item {
+  display: flex;
+  align-items: center;
+}
+
+.file-type-button {
+  width: 100%;
+  justify-content: flex-start;
+
+  mat-icon {
+    margin-right: 12px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-content {
     grid-template-columns: 1fr;
