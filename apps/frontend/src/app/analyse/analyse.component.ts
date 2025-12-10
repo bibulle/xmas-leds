@@ -62,5 +62,8 @@ export class AnalyzeComponent implements OnInit {
   toogleDontSaveCsvToBackend() {
     this.configService.toogleDontSaveCsvToBackend();
   }
+  toogleUseBaseFile() {
+    this.configService.toogleUseBaseFile();
+  }
 
 }

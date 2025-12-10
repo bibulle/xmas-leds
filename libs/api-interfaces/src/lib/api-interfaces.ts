@@ -70,6 +70,7 @@ export class Config {
   waitBetweenLeds = false;
   ledCount = 200;
   dontSaveCsvToBackend = false;
+  useBaseFile = false;
 }
 
 export class Point {
