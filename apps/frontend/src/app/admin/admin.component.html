@@ -88,5 +88,50 @@
         </button>
       </mat-card-actions>
     </mat-card>
+
+    <!-- Individual File Upload Section -->
+    <mat-card class="admin-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>insert_drive_file</mat-icon>
+          Upload fichier individuel
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          Uploader un fichier spécifique (positions LED, animation, image, etc.).
+        </p>
+
+        <div class="file-type-list">
+          <div *ngFor="let fileType of fileTypes" class="file-type-item">
+            <input
+              type="file"
+              #individualFileInput
+              [accept]="fileType.accept"
+              (change)="onIndividualFileSelected($event, fileType.value)"
+              style="display: none"
+            />
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="individualFileInput.click()"
+              [disabled]="uploadingIndividual || uploading || downloading"
+              class="file-type-button"
+            >
+              <mat-icon>{{
+                fileType.value === 'led-positions' ? 'location_on' :
+                fileType.value === 'program' ? 'play_circle' :
+                fileType.value === 'animation' ? 'animation' :
+                fileType.value === 'image' ? 'image' :
+                'photo_camera'
+              }}</mat-icon>
+              {{ fileType.label }}
+            </button>
+          </div>
+        </div>
+
+        <mat-progress-bar *ngIf="uploadingIndividual" mode="indeterminate"></mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

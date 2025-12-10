@@ -8,6 +8,7 @@ import {
   StreamableFile,
   BadRequestException,
   InternalServerErrorException,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -77,6 +78,88 @@ export class AdminController {
       if (!res.headersSent) {
         throw new InternalServerErrorException('Error exporting data');
       }
+    }
+  }
+
+  @Post('upload-file')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('type') type: string
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    try {
+      let targetPath: string;
+      const filename = file.originalname;
+
+      // Determine target path based on file type
+      switch (type) {
+        case 'led-positions':
+          if (!filename.endsWith('.csv')) {
+            throw new BadRequestException('LED positions file must be a CSV file');
+          }
+          targetPath = join(this.dataPath, 'xmas-tree-leds.csv');
+          break;
+
+        case 'program':
+          if (!filename.endsWith('.csv')) {
+            throw new BadRequestException('Program file must be a CSV file');
+          }
+          targetPath = join(this.dataPath, 'program.csv');
+          break;
+
+        case 'animation':
+          if (!filename.endsWith('.csv')) {
+            throw new BadRequestException('Animation file must be a CSV file');
+          }
+          targetPath = join(this.dataPath, 'animations', filename);
+          await mkdir(join(this.dataPath, 'animations'), { recursive: true });
+          break;
+
+        case 'image':
+          if (!filename.endsWith('.json')) {
+            throw new BadRequestException('Image file must be a JSON file');
+          }
+          targetPath = join(this.dataPath, 'images', filename);
+          await mkdir(join(this.dataPath, 'images'), { recursive: true });
+          break;
+
+        case 'tree-image':
+          if (!filename.match(/\.(jpg|jpeg|png)$/i)) {
+            throw new BadRequestException('Tree image must be JPG or PNG');
+          }
+          targetPath = join(this.dataPath, 'arbre', filename);
+          await mkdir(join(this.dataPath, 'arbre'), { recursive: true });
+          break;
+
+        default:
+          throw new BadRequestException(`Unknown file type: ${type}`);
+      }
+
+      // Copy uploaded file to target location
+      await new Promise<void>((resolve, reject) => {
+        const readStream = createReadStream(file.path);
+        const writeStream = createWriteStream(targetPath);
+
+        readStream.pipe(writeStream);
+        writeStream.on('finish', () => resolve());
+        writeStream.on('error', (err) => reject(err));
+        readStream.on('error', (err) => reject(err));
+      });
+
+      return {
+        success: true,
+        message: `File uploaded successfully: ${filename}`,
+        path: targetPath.replace(this.dataPath, ''),
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw new InternalServerErrorException(
+        `Error uploading file: ${error.message}`
+      );
     }
   }
 
