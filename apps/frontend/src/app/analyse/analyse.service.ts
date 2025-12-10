@@ -213,67 +213,90 @@ export class AnalyseService {
           const grey = image.grey({
             algorithm: GreyAlgorithm.LIGHTNESS,
           });
-          // get the grey mask (only look at bright points)
-          const mask = grey.mask({
-            // algorithm: ThresholdAlgorithm.RENYI_ENTROPY,
-            threshold: 0.9,
-            useAlpha: true,
-          });
-          // get the ROIs (from grey+mask)
-          const manager: any = grey.getRoiManager();
-          manager.fromMask(mask);
-          const rois: any[] = manager['getRois']({
-            positive: true,
-            negative: false,
-            minSurface: 3,
-          });
-          // console.log('Nombre de ROI : ' + rois.length);
 
-          // calculate value to sort the lighter ROI (max light, surface with at max light)
-          const myRois: MyRoi[] = rois
-            .map((roi) => {
-              const msk = roi.getMask();
-              const img: Image = grey.extract(msk);
-              const max = img.getMax()[0];
+          // Adaptive detection: try different threshold/minSurface combinations
+          const thresholds = [0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35];
+          const minSurfaces = [8, 6, 5, 4, 3, 2, 1];
 
-              const h = img.getHistogram({
-                maxSlots: 256,
-                channel: 0,
+          let myRois: MyRoi[] = [];
+          let bestThreshold = 0;
+          let bestMinSurface = 0;
+
+          // Try to find exactly one LED with progressively relaxed parameters
+          for (const threshold of thresholds) {
+            for (const minSurface of minSurfaces) {
+              const mask = grey.mask({
+                threshold: threshold,
                 useAlpha: true,
               });
-              const maxSurface = h[max] + h[max - 1] + h[max - 2];
-              // console.log(`max=${max} count=${maxSurface}`);
 
-              return new MyRoi(roi, img, max, maxSurface);
-            })
-            .sort((r1, r2) => {
-              if (r1.maxLight != r2.maxLight) {
-                return r2.maxLight - r1.maxLight;
-              } else {
-                return r2.maxSurface - r1.maxSurface;
+              const manager: any = grey.getRoiManager();
+              manager.fromMask(mask);
+              const rois: any[] = manager['getRois']({
+                positive: true,
+                negative: false,
+                minSurface: minSurface,
+              });
+
+              // Calculate ROI properties
+              const candidateRois: MyRoi[] = rois
+                .map((roi) => {
+                  const msk = roi.getMask();
+                  const img: Image = grey.extract(msk);
+                  const max = img.getMax()[0];
+
+                  const h = img.getHistogram({
+                    maxSlots: 256,
+                    channel: 0,
+                    useAlpha: true,
+                  });
+                  const maxSurface = h[max] + h[max - 1] + h[max - 2];
+
+                  return new MyRoi(roi, img, max, maxSurface);
+                })
+                .sort((r1, r2) => {
+                  if (r1.maxLight != r2.maxLight) {
+                    return r2.maxLight - r1.maxLight;
+                  } else {
+                    return r2.maxSurface - r1.maxSurface;
+                  }
+                });
+
+              // Strategy: prefer finding exactly 1 ROI, but accept the brightest if we find multiple
+              if (candidateRois.length === 1) {
+                myRois = candidateRois;
+                bestThreshold = threshold;
+                bestMinSurface = minSurface;
+                break;
+              } else if (candidateRois.length > 1 && myRois.length === 0) {
+                // Keep this as fallback, but keep looking for exactly 1
+                myRois = candidateRois;
+                bestThreshold = threshold;
+                bestMinSurface = minSurface;
               }
-            });
-          // console.log(myRois);
+            }
+            if (myRois.length === 1) break; // Found exactly one, stop searching
+          }
 
-          // get the roi with max light and draw them to captured image
+          // If we found multiple ROIs, take only the brightest one
+          if (myRois.length > 1) {
+            myRois = [myRois[0]];
+          }
+
+          // Draw the selected ROI(s) on the image
           const roiImg: Image[] = [];
-          const maxOfMax = myRois[0]?.maxLight;
-          myRois
-            .filter((myRoi) => {
-              return myRoi.maxLight == maxOfMax;
-            })
-            .forEach((myRoi) => {
-              image.paintPolygon([
-                [myRoi.roi.minX, myRoi.roi.minY],
-                [myRoi.roi.minX, myRoi.roi.maxY],
-                [myRoi.roi.maxX, myRoi.roi.maxY],
-                [myRoi.roi.maxX, myRoi.roi.minY],
-              ]);
-              image.paintPoints([[Math.ceil(myRoi.roi.meanX), Math.ceil(myRoi.roi.meanY)]], { color: [0, 0, 0] });
+          myRois.forEach((myRoi) => {
+            image.paintPolygon([
+              [myRoi.roi.minX, myRoi.roi.minY],
+              [myRoi.roi.minX, myRoi.roi.maxY],
+              [myRoi.roi.maxX, myRoi.roi.maxY],
+              [myRoi.roi.maxX, myRoi.roi.minY],
+            ]);
+            image.paintPoints([[Math.ceil(myRoi.roi.meanX), Math.ceil(myRoi.roi.meanY)]], { color: [0, 0, 0] });
 
-              roiImg.push(myRoi.img);
-              this.imageRoisTrigger.next(roiImg);
-            });
+            roiImg.push(myRoi.img);
+            this.imageRoisTrigger.next(roiImg);
+          });
           this.imageTrigger.next(image);
 
           resolve(myRois);
