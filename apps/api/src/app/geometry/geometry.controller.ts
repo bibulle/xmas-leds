@@ -17,9 +17,9 @@ export class GeometryController {
       // create the csv target content
       let csv = 'id,x,y,z\r\n';
       points.forEach((p, index) => {
-        p.x = p.x ? +p.x.toFixed(3) : 0;
-        p.y = p.y ? +p.y.toFixed(3) : 0;
-        p.z = p.z ? +p.z.toFixed(3) : 0;
+        p.x = (p.x == null || Number.isNaN(p.x)) ? NaN : +p.x.toFixed(3);
+        p.y = (p.y == null || Number.isNaN(p.y)) ? NaN : +p.y.toFixed(3);
+        p.z = (p.z == null || Number.isNaN(p.z)) ? NaN : +p.z.toFixed(3);
         csv += `${index !== 0 ? '\r\n' : ''}${index},${p.x},${p.y},${p.z}`;
       });
       // console.log(csv);
