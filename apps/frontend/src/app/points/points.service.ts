@@ -9,9 +9,9 @@ import { NotificationService } from '../notification/notification.service';
 export class PointsService {
   constructor(private httpClient: HttpClient, private notificationService: NotificationService) {}
 
-  sendPointsToBackend(points: Point[]): Promise<string> {
+  sendPointsToBackend(points: Point[], useBaseFile?: boolean): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const body = { points: points };
+      const body = { points: points, useBaseFile: useBaseFile };
       this.httpClient
         .post<ApiReturn>(`/api/savePoints`, body, {
           headers: new HttpHeaders({

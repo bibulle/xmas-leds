@@ -38,6 +38,23 @@ export class AnalyseService {
     const angle = this.avancementTrigger.value.angle;
     const status = this.avancementTrigger.value.status;
 
+    // If using base file, skip capture and load points directly from backend
+    if (status === Status.WAITING && this.configService.isUseBaseFileEnabled()) {
+      this.avancementTrigger.next(new Advancement(Status.CALCULATING, 0));
+
+      try {
+        // Load points from backend
+        this.points = await this.pointsService.getPointsFromBackend();
+
+        this.avancementTrigger.next(new Advancement(Status.WAIT_FOR_SAVE, 0));
+      } catch (error) {
+        console.error('Error loading points from base file:', error);
+        this.notificationService.launchNotif_ERROR('Cannot load points from base file');
+        return this.avancementTrigger.next(new Advancement(Status.WAITING, 0));
+      }
+      return;
+    }
+
     // We were waiting for next angle
     if (status === Status.WAITING) {
       this.avancementTrigger.next(new Advancement(Status.GETTING_LED, angle, 0));
@@ -363,7 +380,7 @@ export class AnalyseService {
     return new Promise<void>((resolve, reject) => {
       if (!this.configService.isDontSaveCsvToBackend()) {
         this.pointsService
-          .sendPointsToBackend(points)
+          .sendPointsToBackend(points, this.configService.isUseBaseFileEnabled())
           .then((s) => {
             console.log(s);
             resolve();

@@ -34,6 +34,9 @@ export class ConfigService {
     if (key.toLowerCase() === 'dontSaveCsvToBackend'.toLowerCase()) {
       this.config.dontSaveCsvToBackend = this.getBoolean(value);
     }
+    if (key.toLowerCase() === 'useBaseFile'.toLowerCase()) {
+      this.config.useBaseFile = this.getBoolean(value);
+    }
     this.configSubject.next(this.config);
   }
 
@@ -70,6 +73,13 @@ export class ConfigService {
   }
   toogleDontSaveCsvToBackend() {
     this.config.dontSaveCsvToBackend = !this.config.dontSaveCsvToBackend;
+    this.configSubject.next(this.config);
+  }
+  isUseBaseFileEnabled(): boolean {
+    return this.config.useBaseFile;
+  }
+  toogleUseBaseFile() {
+    this.config.useBaseFile = !this.config.useBaseFile;
     this.configSubject.next(this.config);
   }
 

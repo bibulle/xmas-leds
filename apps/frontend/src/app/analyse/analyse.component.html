@@ -29,6 +29,9 @@
         <div class="flex">
           <mat-checkbox class="" [checked]="config.dontSaveCsvToBackend" (change)="toogleDontSaveCsvToBackend()">dontSaveCsvToBackend</mat-checkbox>
         </div>
+        <div class="flex">
+          <mat-checkbox class="" [checked]="config.useBaseFile" (change)="toogleUseBaseFile()">useBaseFile</mat-checkbox>
+        </div>
         <div class="flex flex-col">
           <mat-form-field class="flex">
             <mat-label>ledCount</mat-label>
