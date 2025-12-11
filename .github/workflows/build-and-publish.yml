@@ -11,10 +11,11 @@ on:
 
 env:
   APP_NAME: xmas-leds
+  DOCKER_IMAGE: xmasleds
   VERSION: 0.0.0
   APP_PATH: ./application
   OPS_PATH: ./gitops
-  K8S_FILE: xmas-leds/30-deployment.yaml
+  K8S_FILE: xmas-leds/templates/30-deployment-local.yaml
 
 jobs:
   # define job to build and publish docker image
@@ -73,15 +74,15 @@ jobs:
       - name: Calculate docker tags
         if: ${{ env.dockerhub_username != '' && env.dockerhub_password != '' }}
         run : |
-          echo "DOCKER_TAGS=${{env.dockerhub_username}}/${{env.APP_NAME}}:latest, ${{env.dockerhub_username}}/${{env.APP_NAME}}:V${{env.VERSION}}" >> $GITHUB_ENV
+          echo "DOCKER_TAGS=${{env.dockerhub_username}}/${{env.DOCKER_IMAGE}}:latest, ${{env.dockerhub_username}}/${{env.DOCKER_IMAGE}}:V${{env.VERSION}}" >> $GITHUB_ENV
 
       - name: Calculate docker tags
         if: ${{ env.dockerhub_username == '' || env.dockerhub_password == '' }}
         run : |
-          echo "DOCKER_TAGS=${{env.APP_NAME}}:latest" >> $GITHUB_ENV
+          echo "DOCKER_TAGS=${{env.DOCKER_IMAGE}}:latest" >> $GITHUB_ENV
 
       - run: |
-          echo "Building : ${{env.APP_NAME}}:${{env.VERSION}}"
+          echo "Building : ${{env.DOCKER_IMAGE}}:${{env.VERSION}}"
 
       - name: Set up Docker Buildx
         id: buildx
@@ -108,7 +109,7 @@ jobs:
         if: ${{ env.actions_token != '' }}
         run: |
           cd ${{env.OPS_PATH}}
-          image="bibulle\/${{env.APP_NAME}}"
+          image="bibulle\/${{env.DOCKER_IMAGE}}"
           sed -i "s/image: ${image}:.*/image: ${image}:V${{env.VERSION}}/g" ${{env.K8S_FILE}}
           status=`git status -s | wc -l | bc`
           echo "line_modified=$status" >> $GITHUB_OUTPUT
