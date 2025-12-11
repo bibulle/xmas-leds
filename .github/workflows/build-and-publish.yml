@@ -43,6 +43,23 @@ jobs:
           token: ${{ env.actions_token }}
           path: ${{env.OPS_PATH}}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ${{env.APP_PATH}}/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd ${{env.APP_PATH}}
+          npm ci
+
+      - name: Build application
+        run: |
+          cd ${{env.APP_PATH}}
+          npm run build
+
       - name: Read package.json
         id: read_package_json
         run: |
