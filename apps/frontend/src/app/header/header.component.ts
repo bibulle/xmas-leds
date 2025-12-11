@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
+import { APP_VERSION } from '../version';
 
 @Component({
   selector: 'xmas-leds-header',
@@ -8,6 +9,7 @@ import { NavigationEnd, Router } from '@angular/router';
 })
 export class HeaderComponent {
 
+  version = APP_VERSION;
   links: { path?: string; label: string; icon: string; selected: boolean }[] = [];
 
   constructor(private _router: Router) {
