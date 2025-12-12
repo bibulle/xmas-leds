@@ -197,14 +197,46 @@ void wifi_setup() {
   Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + "*****");
   // Serial.println("ESP Self-Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
 
-  Serial.println(F("Opening configuration portal."));
   bool configDataLoaded = false;
 
+  // Try to connect directly if we have stored credentials (skip config portal)
   if ((Router_SSID != "") && (Router_Pass != "")) {
-    LOGERROR3(F("* Add SSID = "), Router_SSID, F(", PW = "), Router_Pass);
-    wifiMulti.addAP(Router_SSID.c_str(), Router_Pass.c_str());
+    Serial.println(F("Got ESP Self-Stored Credentials. Trying direct connection..."));
 
-    ESP_wifiManager.setConfigPortalTimeout(120);  // If no access point name has been previously entered disable timeout.
+    // Initialize WiFi and try to connect
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
+
+    Serial.print(F("Connecting to WiFi"));
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 120) {  // 60 seconds max
+      delay(500);
+      Serial.print(".");
+      attempts++;
+    }
+    Serial.println();
+
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.print(F("WiFi connected directly! IP: "));
+      Serial.println(WiFi.localIP());
+      // Load config data for timezone etc.
+      if (loadConfigData()) {
+        if (strlen(WM_config.TZ_Name) > 0) {
+          configTzTime(WM_config.TZ, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
+        }
+      }
+      digitalWrite(WIFIMGR_PIN_LED, WIFIMGR_LED_OFF);
+      return;  // Skip config portal entirely
+    } else {
+      Serial.println(F("Direct connection failed. Will open config portal."));
+      WiFi.disconnect();
+    }
+  }
+
+  Serial.println(F("Opening configuration portal."));
+
+  if ((Router_SSID != "") && (Router_Pass != "")) {
+    ESP_wifiManager.setConfigPortalTimeout(120);
     Serial.println(F("Got ESP Self-Stored Credentials. Timeout 120s for Config Portal"));
   }
 

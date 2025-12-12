@@ -243,14 +243,19 @@ void startNextAnim()
   // if program not loaded or ended, reload it
   if (!currentProgramFile || !currentProgramFile.available())
   {
+    static bool noProgramLogged = false;
     currentProgramFile.close();
-    Serial.println("Start program");
     currentProgramFile = LittleFS.open("/animations/program.csv", FILE_READ);
     if (!currentProgramFile || !currentProgramFile.available())
     {
-      Serial.printf("No program found !!\n");
+      if (!noProgramLogged) {
+        Serial.println("No program found");
+        noProgramLogged = true;
+      }
       return;
     }
+    noProgramLogged = false;  // Reset when program is found
+    Serial.println("Program loaded");
   }
 
   // read next line of the program
