@@ -6,8 +6,8 @@ export class ImageCreatorBonbons extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorBonbons.name);
 
   name: string = 'Bonbons';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
 
   // Fonction pour créer une frame en déplaçant le dégradé vers le bas
   createFrame(frameId: number, width: number, height: number) {

@@ -6,8 +6,8 @@ export class ImageCreatorDiagonale extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorDiagonale.name);
 
   name: string = 'Diagonale';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
 
   // Fonction pour créer une frame en déplaçant le dégradé vers le bas
   createFrame(frameId: number, width: number, height: number) {
