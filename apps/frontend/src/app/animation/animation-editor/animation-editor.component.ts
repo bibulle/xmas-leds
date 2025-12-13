@@ -3,7 +3,7 @@ import { Color, stringInputToObject } from '@angular-material-components/color-p
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatSelectChange } from '@angular/material/select';
-import { ImageAnimation, Led, LedAnimOption, LedAnimOptionType, LedAnimation, Point } from '@xmas-leds/api-interfaces';
+import { ImageAnimation, Led, LedAnimOption, LedAnimOptionColor, LedAnimOptionType, LedAnimation, Point } from '@xmas-leds/api-interfaces';
 import { catchError, of } from 'rxjs';
 import { LedsService } from '../../leds/leds.service';
 import { NotificationService } from '../../notification/notification.service';
@@ -88,6 +88,12 @@ export class AnimationEditorComponent implements OnInit {
           if (!o.valueI && this.imageAnimations.length > 0) {
             o.valueI = this.imageAnimations[0];
           }
+          // Initialiser les couleurs dynamiques si c'est une animation Image
+          if (o.valueI && anim instanceof LedAnimationImage) {
+            // Passer les couleurs sauvegardées (stockées dans valueS de l'option Image)
+            anim.updateColorOptionsForImage(o.valueI, o.valueS);
+            this.initImageColorControls();
+          }
         });
     }
   }
@@ -128,19 +134,55 @@ export class AnimationEditorComponent implements OnInit {
       .forEach((o) => {
         o.valueI = image;
       });
+
+    // Mettre à jour les options de couleur dynamiques pour LedAnimationImage
+    if (this.selectedAnim instanceof LedAnimationImage) {
+      this.selectedAnim.updateColorOptionsForImage(image);
+      // Initialiser les FormControl pour les nouvelles couleurs
+      this.initImageColorControls();
+    }
+  }
+
+  // Initialise les FormControl pour les couleurs de l'image
+  initImageColorControls() {
+    if (this.selectedAnim instanceof LedAnimationImage) {
+      this.selectedAnim.imageColorOptions.forEach((o) => {
+        if (o.valueS) {
+          const obj = stringInputToObject(o.valueS) as Color;
+          this.colorCtrs[o.name] = new FormControl(new Color(obj.r, obj.g, obj.b, obj.a), []);
+        }
+      });
+    }
+  }
+
+  // Retourne les options de couleur dynamiques pour l'image sélectionnée
+  getImageColorOptions(): LedAnimOptionColor[] {
+    if (this.selectedAnim instanceof LedAnimationImage) {
+      return this.selectedAnim.imageColorOptions;
+    }
+    return [];
   }
 
   calculateClicked() {
     if (!this.selectedAnim || !this.selectedAnim.calculate || !this.selectedAnim.calculateInternal) {
       return;
     }
-    // get Colors
+    // get Colors from standard options
     this.selectedAnim.options
       .filter((o) => o.type === LedAnimOptionType.COLOR)
       .forEach((o) => {
         // console.log((this.colorCtrs[o.name].value as Color).toRgbString());
         o.valueS = (this.colorCtrs[o.name].value as Color).toRgbString();
       });
+
+    // get Colors from image color options (for LedAnimationImage)
+    if (this.selectedAnim instanceof LedAnimationImage) {
+      this.selectedAnim.imageColorOptions.forEach((o) => {
+        if (this.colorCtrs[o.name]) {
+          o.valueS = (this.colorCtrs[o.name].value as Color).toRgbString();
+        }
+      });
+    }
 
     this.selectedAnim.calculate(this.points);
   }

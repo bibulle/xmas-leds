@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { LedAnimation, LedProgram, Point } from '@xmas-leds/api-interfaces';
+import { ImageAnimation, LedAnimation, LedAnimOptionType, LedProgram, Point } from '@xmas-leds/api-interfaces';
 import { AnimationService } from '../animation.service';
 
 @Component({
@@ -10,6 +10,7 @@ import { AnimationService } from '../animation.service';
 export class AnimationDisplayComponent implements OnInit {
   public program = new LedProgram();
   public animations: LedAnimation[] = [];
+  public imageAnimations: ImageAnimation[] = [];
 
   public animRunning = "";
 
@@ -20,6 +21,11 @@ export class AnimationDisplayComponent implements OnInit {
   constructor(private animationService: AnimationService) {}
 
   ngOnInit(): void {
+    this.animationService.loadImageAnimations().then((images) => {
+      if (images) {
+        this.imageAnimations = images;
+      }
+    });
     this.animationService.animationsListNeedRefresh.subscribe(() => {
       // console.log("event received");
       this.refreshData();
@@ -95,6 +101,31 @@ export class AnimationDisplayComponent implements OnInit {
       this.program.repeat[name] = 0;
     }
     return this.program.repeat[name];
+  }
+
+  getImageColors(name: string): { name: string; valueS: string }[] {
+    const anim = this.getAnim(name);
+    if (!anim) return [];
+
+    const imageOption = anim.options.find((o) => o.type === LedAnimOptionType.IMAGE);
+    if (!imageOption || !imageOption.valueS) return [];
+
+    try {
+      return JSON.parse(imageOption.valueS) as { name: string; valueS: string }[];
+    } catch {
+      return [];
+    }
+  }
+
+  getAnimImage(name: string): ImageAnimation | undefined {
+    const anim = this.getAnim(name);
+    if (!anim) return undefined;
+
+    const imageOption = anim.options.find((o) => o.type === LedAnimOptionType.IMAGE);
+    if (!imageOption || !imageOption.valueI) return undefined;
+
+    // Trouver l'image correspondante dans imageAnimations (pour avoir les frames)
+    return this.imageAnimations.find((img) => img.name === imageOption.valueI?.name);
   }
   incrementRepeat(increment: number, name: string, event: MouseEvent) {
     event.stopPropagation();

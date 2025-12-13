@@ -33,11 +33,11 @@ export abstract class LedAnimationAbstract implements LedAnimation {
   /**
    * Calculate the animations
    */
-  abstract calculateInternal: ((points: Point[]) => void) | undefined;
-  calculate(points: Point[]) {
+  abstract calculateInternal: ((points: Point[]) => void | Promise<void>) | undefined;
+  async calculate(points: Point[]) {
     this.initOptions();
     if (this.calculateInternal) {
-      this.calculateInternal(points);
+      await this.calculateInternal(points);
     }
   }
 

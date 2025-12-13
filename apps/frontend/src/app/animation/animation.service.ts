@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ApiReturn, ImageAnimation, Led, LedAnimation, LedAnimOptionImage, LedProgram, Line } from '@xmas-leds/api-interfaces';
+import { ApiReturn, Color, ImageAnimation, Led, LedAnimation, LedProgram, Line } from '@xmas-leds/api-interfaces';
 import { lastValueFrom, map, Subject } from 'rxjs';
 import { ConfigService } from '../config.service';
 import { LedsService } from '../leds/leds.service';
@@ -65,6 +65,21 @@ export class AnimationService {
       )
     );
     return animations;
+  }
+
+  async generateImageWithColors(imageName: string, colors: Color[]): Promise<ImageAnimation | undefined> {
+    console.log('generateImageWithColors', imageName, colors);
+    const animation = await lastValueFrom(
+      this.httpClient
+        .post<ApiReturn>(`/api/anim/images/generate`, { imageName, colors })
+        .pipe(
+          map((data) => {
+            console.log('generateImageWithColors response', data);
+            return data?.images?.[0];
+          })
+        )
+    );
+    return animation;
   }
 
   async visuByLine(lines: Line[], divisor = 1): Promise<void> {
