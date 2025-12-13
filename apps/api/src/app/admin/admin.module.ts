@@ -3,6 +3,7 @@ import { AdminController } from './admin.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import { mkdirSync, existsSync } from 'fs';
 
 @Module({
   imports: [
@@ -10,6 +11,9 @@ import { extname, join } from 'path';
       storage: diskStorage({
         destination: (req, file, cb) => {
           const uploadPath = join(process.cwd(), 'data', '.temp-uploads');
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {

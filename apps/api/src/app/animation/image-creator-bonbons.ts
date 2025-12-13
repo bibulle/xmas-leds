@@ -6,8 +6,8 @@ export class ImageCreatorBonbons extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorBonbons.name);
 
   name: string = 'Bonbons';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
   defaultColors: ImageAnimationColor[] = [
     new ImageAnimationColor('Couleur Fond', new Color(255, 255, 255)),
     new ImageAnimationColor('Couleur Bord', new Color(0, 0, 0)),

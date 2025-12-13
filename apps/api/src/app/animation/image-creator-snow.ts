@@ -6,8 +6,8 @@ export class ImageCreatorSnow extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorSnow.name);
 
   name: string = 'Neige';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
   defaultColors: ImageAnimationColor[] = [
     new ImageAnimationColor('Couleur Neige', new Color(255, 255, 255)),
   ];

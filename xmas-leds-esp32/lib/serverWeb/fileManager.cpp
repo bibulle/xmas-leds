@@ -188,14 +188,13 @@ void handleFileUpload()
 {
     HTTPUpload &upload = server.upload();
     String filename = "/animations" + (upload.filename.startsWith("/") ? upload.filename : "/" + upload.filename);
-    // Serial.println("handleFileUpload: " + filename);
-    // Serial.printf( "          status: %d (%d)\n", upload.status, upload.currentSize);
     if (upload.status == UPLOAD_FILE_START)
     {
+        Serial.println("handleFileUpload: " + filename);
         fsUploadFile = LittleFS.open(filename, "w");
         if (!fsUploadFile)
         {
-            Serial.println("handleFileUpload: open file failed");
+            Serial.println("  -> open file failed");
             sendErrorResponse(&server, 500, "open file failed");
         }
     }
@@ -205,6 +204,7 @@ void handleFileUpload()
     }
     else if (upload.status == UPLOAD_FILE_END)
     {
+        Serial.printf("  -> done: %d bytes\n", upload.totalSize);
         fsUploadFile.close();
 
         if (upload.filename.endsWith(".csv") && upload.filename != "program.csv")
@@ -215,12 +215,14 @@ void handleFileUpload()
             }
             else
             {
+                Serial.println("  -> conversion failed");
                 sendErrorResponse(&server, 500, "conversion to binary failed");
             };
         }
     }
     else if (upload.status == UPLOAD_FILE_ABORTED)
     {
+        Serial.println("  -> aborted");
         fsUploadFile.close();
     }
 }
@@ -237,6 +239,7 @@ void handleFileDelete()
 // Suppression de tous les fichiers dans le répertoire /animations
 void handleDeleteAllFiles()
 {
+    Serial.println("handleDeleteAllFiles");
     toggleStopAnimation(true);
     setAllPixel(RgbColor(0));
     showStrip();
@@ -244,9 +247,19 @@ void handleDeleteAllFiles()
     closeCurrentProgramFile();
     closeCurrentAnimFile();
     String path = "/animations";
+
+    // Create directory if it doesn't exist
+    if (!LittleFS.exists(path)) {
+        Serial.println("  -> creating /animations");
+        LittleFS.mkdir(path);
+        sendSuccessResponse(&server, 200, "All files in /animations deleted");
+        return;
+    }
+
     File root = LittleFS.open(path);
     if (!root.isDirectory())
     {
+        Serial.println("  -> ERROR: not a directory");
         sendErrorResponse(&server, 500, "Path is not a directory");
         return;
     }

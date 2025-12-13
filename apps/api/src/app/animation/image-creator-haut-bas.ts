@@ -6,8 +6,8 @@ export class ImageCreatorHautBas extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorHautBas.name);
 
   name: string = 'Haut-Bas';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
   defaultColors: ImageAnimationColor[] = [
     new ImageAnimationColor('Couleur Haut', new Color(0, 0, 255)),
     new ImageAnimationColor('Couleur Bas', new Color(255, 0, 0)),

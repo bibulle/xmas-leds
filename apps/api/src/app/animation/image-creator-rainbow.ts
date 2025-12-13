@@ -6,8 +6,8 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorRainbow.name);
 
   name: string = 'Arc-en-Ciel';
-  width = 20;
-  height = 20;
+    width = 15;
+    height = 15;
   // L'arc-en-ciel n'a pas de couleurs personnalisables (généré mathématiquement)
   defaultColors: ImageAnimationColor[] = [];
 

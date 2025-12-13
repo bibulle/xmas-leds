@@ -6,8 +6,8 @@ export class ImageCreatorDiagonale extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorDiagonale.name);
 
   name: string = 'Diagonale';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
   defaultColors: ImageAnimationColor[] = [
     new ImageAnimationColor('Couleur Fond', new Color(255, 255, 255)),
     new ImageAnimationColor('Couleur Bandes', new Color(0, 0, 255)),

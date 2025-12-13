@@ -96,16 +96,22 @@ export class Color {
   b: number;
 
   constructor(r = Math.floor(Math.random() * 256), g = Math.floor(Math.random() * 256), b = Math.floor(Math.random() * 256)) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    const clamp = (v: number) => Math.round(Math.max(0, Math.min(255, v)));
+    this.r = clamp(r);
+    this.g = clamp(g);
+    this.b = clamp(b);
   }
   static merge(c1: Color, c2: Color) {
     return Color.interpolate(c1, c2, 0.5);
   }
 
   static interpolate(c1: Color, c2: Color, t: number): Color {
-    return new Color(c1.r + (c2.r - c1.r) * t, c1.g + (c2.g - c1.g) * t, c1.b + (c2.b - c1.b) * t);
+    const clamp = (v: number) => Math.round(Math.max(0, Math.min(255, v)));
+    return new Color(
+      clamp(c1.r + (c2.r - c1.r) * t),
+      clamp(c1.g + (c2.g - c1.g) * t),
+      clamp(c1.b + (c2.b - c1.b) * t)
+    );
   }
 
   static toString(c: Color): string {
