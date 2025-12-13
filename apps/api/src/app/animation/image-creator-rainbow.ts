@@ -1,21 +1,15 @@
-import { ImageAnimation } from '@xmas-leds/api-interfaces';
+import { Color, ImageAnimationColor } from '@xmas-leds/api-interfaces';
 import { ImageCreatorAbstract } from './image-creator-abstract';
 import { Logger } from '@nestjs/common';
 
 export class ImageCreatorRainbow extends ImageCreatorAbstract {
-    readonly logger = new Logger(ImageCreatorRainbow.name);
-    
-    name: string = "Arc-en-Ciel";
-    width = 20;
-    height = 20;
+  readonly logger = new Logger(ImageCreatorRainbow.name);
 
-    create(): ImageAnimation {
-        this.logger.debug(`Creating image: ${this.name}`);
-        return {
-            name: this.name,
-            frames: this.generateAnimationFrames(20, 20)
-        }
-    }
+  name: string = 'Arc-en-Ciel';
+  width = 20;
+  height = 20;
+  // L'arc-en-ciel n'a pas de couleurs personnalisables (généré mathématiquement)
+  defaultColors: ImageAnimationColor[] = [];
 
   // Fonction pour générer une couleur RGB en fonction de la position dans l'arc-en-ciel
   rainbowColor(position: number, maxPosition: number) {
@@ -24,7 +18,7 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
     const green = Math.round(Math.sin(frequency * position + (2 * Math.PI) / 3) * 127 + 128);
     const blue = Math.round(Math.sin(frequency * position + (4 * Math.PI) / 3) * 127 + 128);
     return { r: red, g: green, b: blue };
-    }
+  }
 
   // Génère le dégradé de l'arc-en-ciel pour une frame
   generateRainbowGradient(height: number) {
@@ -37,7 +31,7 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
   }
 
   // Fonction pour créer une frame en déplaçant le dégradé vers le bas
-  createFrame(gradient, offset, width: number, height: number) {
+  createFrame(gradient: Color[], offset: number, width: number, height: number) {
     const frame = [];
     for (let y = 0; y < height; y++) {
       const row = [];
@@ -52,7 +46,8 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
   }
 
   // Génère toutes les frames de l'animation
-  generateAnimationFrames(width: number, height: number) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  generateAnimationFrames(width: number, height: number, colors?: Color[]) {
     const frames = [];
     const gradient = this.generateRainbowGradient(height);
 
@@ -62,5 +57,4 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
     }
     return frames;
   }
-
 } 

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiReturn, Led, LedAnimation, Line } from '@xmas-leds/api-interfaces';
+import { ApiReturn, Color, Led, LedAnimation, Line } from '@xmas-leds/api-interfaces';
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import 'multer';
 import { diskStorage } from 'multer';
@@ -298,6 +298,26 @@ export class AnimationController {
     const animations = await this.animationService.getAllImageAnimations();
 
     return { images: animations };
+  }
+
+  // ====================================
+  // route to generate image animation with custom colors
+  // ====================================
+  @Post('/images/generate')
+  async generateImageWithColors(@Body('imageName') imageName: string, @Body('colors') colors: Color[]): Promise<ApiReturn> {
+    this.logger.log(`generateImageWithColors: imageName=${imageName}, colors=${JSON.stringify(colors)}`);
+    if (!imageName) {
+      throw new HttpException('Bad request: imageName required', HttpStatus.BAD_REQUEST);
+    }
+
+    const animation = this.animationService.generateImageWithColors(imageName, colors || []);
+
+    if (!animation) {
+      throw new HttpException(`Image not found: ${imageName}`, HttpStatus.NOT_FOUND);
+    }
+
+    this.logger.log(`generateImageWithColors: returning animation with ${animation.frames.length} frames`);
+    return { images: [animation] };
   }
 
   // ====================================

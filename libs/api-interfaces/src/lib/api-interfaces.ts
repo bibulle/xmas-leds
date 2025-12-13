@@ -168,9 +168,20 @@ export interface LedAnimation {
   // execOnTree?(): void;
 }
 
+export class ImageAnimationColor {
+  name = '';
+  color: Color = new Color(0, 0, 0);
+
+  constructor(name: string, color: Color) {
+    this.name = name;
+    this.color = color;
+  }
+}
+
 export class ImageAnimation {
   name = '';
   frames: Color[][][] = [];
+  defaultColors: ImageAnimationColor[] = [];
 }
 
 export abstract class LedAnimOption {

@@ -32,6 +32,19 @@
         <div *ngIf="option.type !== 2" class="pr-4">{{ option.name }}</div>
         <div *ngIf="option.type === 0">{{ option.valueN }} {{ option.unit }}</div>
         <div *ngIf="option.type === 1" class="border-neutral-dark border" [style.background-color]="option.valueS"></div>
+        <div *ngIf="option.type === 3">
+          <xmas-leds-pixel-canvas
+            *ngIf="getAnimImage(anim)"
+            [size]="40"
+            [sizeHover]="40"
+            [image]="getAnimImage(anim)!"
+            title="{{option.valueI?.name}}"></xmas-leds-pixel-canvas>
+          <span *ngIf="!getAnimImage(anim)">{{ option.valueI?.name || 'Non définie' }}</span>
+        </div>
+        }
+        @for (colorOpt of getImageColors(anim); track colorOpt.name) {
+        <div class="pr-4">{{ colorOpt.name }}</div>
+        <div class="border-neutral-dark border" [style.background-color]="colorOpt.valueS"></div>
         }
       </div>
     </mat-expansion-panel>

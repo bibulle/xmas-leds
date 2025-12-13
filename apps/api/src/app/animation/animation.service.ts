@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ImageAnimation } from '@xmas-leds/api-interfaces';
+import { Color, ImageAnimation } from '@xmas-leds/api-interfaces';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { ImageCreatorAbstract } from './image-creator-abstract';
@@ -31,18 +31,22 @@ export class AnimationService {
 
   // Méthode pour obtenir toutes les image-animations
   async getAllImageAnimations(): Promise<ImageAnimation[]> {
-
     mkdirSync(this.imagesDir, { recursive: true });
 
-    const files = await readdirSync(this.imagesDir);
-    const animations = [];
+    const files = readdirSync(this.imagesDir);
+    const animations: ImageAnimation[] = [];
 
     for (const file of files) {
       this.logger.debug(`Lecture de ${file}`);
       const filePath = join(this.imagesDir, file);
       try {
-        const data = await readFileSync(filePath, 'utf-8');
-        const animation = JSON.parse(data);
+        const data = readFileSync(filePath, 'utf-8');
+        const animation = JSON.parse(data) as ImageAnimation;
+        // S'assurer que defaultColors existe (pour les anciennes animations)
+        const creator = this.imageCreators.find((c) => c.name === animation.name);
+        if (creator) {
+          animation.defaultColors = creator.defaultColors;
+        }
         animations.push(animation);
       } catch (error) {
         this.logger.error(`Erreur lors de la lecture de ${file}:`, error);
@@ -50,17 +54,24 @@ export class AnimationService {
     }
 
     return animations;
-  } 
+  }
 
-  readonly imageCreators:ImageCreatorAbstract[] = [ new ImageCreatorBonbons(), new ImageCreatorHautBas(), new ImageCreatorHautBasDouble(), new ImageCreatorDiagonale(), new ImageCreatorRainbow(), new ImageCreatorSnow ];
+  readonly imageCreators: ImageCreatorAbstract[] = [
+    new ImageCreatorBonbons(),
+    new ImageCreatorHautBas(),
+    new ImageCreatorHautBasDouble(),
+    new ImageCreatorDiagonale(),
+    new ImageCreatorRainbow(),
+    new ImageCreatorSnow(),
+  ];
 
   async initAnimations() {
     this.logger.log('Initialisation des animations...');
     const images = await this.getAllImageAnimations();
 
     for (const imageCreator of this.imageCreators) {
-      if (!images.find( (image) => image.name === imageCreator.name)) {
-        const animation = await imageCreator.create();
+      if (!images.find((image) => image.name === imageCreator.name)) {
+        const animation = imageCreator.create();
         this.saveAnimationToFile(animation);
       }
     }
@@ -72,4 +83,13 @@ export class AnimationService {
     writeFileSync(outputPath, JSON.stringify(animation, null, 2));
   }
 
+  // Génère une animation avec des couleurs personnalisées
+  generateImageWithColors(imageName: string, colors: Color[]): ImageAnimation | null {
+    const creator = this.imageCreators.find((c) => c.name === imageName);
+    if (!creator) {
+      this.logger.error(`Image creator not found: ${imageName}`);
+      return null;
+    }
+    return creator.create(colors);
+  }
 }
