@@ -42,29 +42,31 @@ export class AnimationDisplayComponent implements OnInit {
     this.animationService.getAnimationsList().then((anims) => {
       // console.log("backend : "+anims);
 
-      // remove not existing
+      // remove not existing and base animations (keep only calculated ones with _XXXX suffix)
       this.animations = this.animations.filter((anim) => {
-        return anims.find((a) => a === anim.titre);
+        return anims.find((a) => a === anim.titre) && this.isCalculatedAnim(anim.titre);
       });
       this.program.anims = this.program.anims.filter((name) => {
-        return anims.find((a) => a === name);
+        return anims.find((a) => a === name) && this.isCalculatedAnim(name);
       });
 
-      // add new one
-      anims.forEach((name) => {
-        // console.log(name);
-        const anim1 = this.animations.find((a) => a.titre === name);
-        if (!anim1) {
-          this.animationService.getAnimationFromBackend(name).then((anim) => {
-            this.animations.push(anim);
-          });
-        }
+      // add new one (only calculated animations with _XXXX suffix)
+      anims
+        .filter((name) => this.isCalculatedAnim(name))
+        .forEach((name) => {
+          // console.log(name);
+          const anim1 = this.animations.find((a) => a.titre === name);
+          if (!anim1) {
+            this.animationService.getAnimationFromBackend(name).then((anim) => {
+              this.animations.push(anim);
+            });
+          }
 
-        // console.log(`${name} : ${JSON.stringify(this.program.anims)}`);
-        if (!this.program.anims.find((a) => a === name)) {
-          this.program.anims = [...this.program.anims, name];
-        }
-      });
+          // console.log(`${name} : ${JSON.stringify(this.program.anims)}`);
+          if (!this.program.anims.find((a) => a === name)) {
+            this.program.anims = [...this.program.anims, name];
+          }
+        });
     });
   }
 
@@ -92,6 +94,11 @@ export class AnimationDisplayComponent implements OnInit {
   }
   getAnim(name: string): LedAnimation | undefined {
     return this.animations.find((a) => a.titre === name);
+  }
+
+  // Vérifie si l'animation est une animation calculée (avec suffixe _XXXX)
+  isCalculatedAnim(name: string): boolean {
+    return /_\d{4}$/.test(name);
   }
   getAnimDuration(name: string): number | undefined {
     return this.getAnim(name)?.options.find((o) => o.name.toLowerCase() === 'duration')?.valueN;
