@@ -6,8 +6,8 @@ export class ImageCreatorSnow extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorSnow.name);
 
   name: string = 'Neige';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
 
   // Fonction pour créer une frame en déplaçant le dégradé vers le bas
   createFrame(frameId: number, width: number, height: number) {
@@ -33,7 +33,8 @@ export class ImageCreatorSnow extends ImageCreatorAbstract {
   generateAnimationFrames(width: number, height: number) {
     const frames = [];
 
-    for (let i = 0; i < 2*height; i++) {
+    // Reduced: height frames instead of 2*height (interpolation will fill gaps)
+    for (let i = 0; i < height; i++) {
       const frame = this.createFrame(i, width, height);
       frames.push(frame);
     }

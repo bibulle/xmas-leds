@@ -6,14 +6,14 @@ export class ImageCreatorRainbow extends ImageCreatorAbstract {
     readonly logger = new Logger(ImageCreatorRainbow.name);
     
     name: string = "Arc-en-Ciel";
-    width = 20;
-    height = 20;
+    width = 15;
+    height = 15;
 
     create(): ImageAnimation {
         this.logger.debug(`Creating image: ${this.name}`);
         return {
             name: this.name,
-            frames: this.generateAnimationFrames(20, 20)
+            frames: this.generateAnimationFrames(this.width, this.height)
         }
     }
 

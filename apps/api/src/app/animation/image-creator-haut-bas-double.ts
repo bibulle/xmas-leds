@@ -6,8 +6,8 @@ export class ImageCreatorHautBasDouble extends ImageCreatorAbstract {
   readonly logger = new Logger(ImageCreatorHautBasDouble.name);
 
   name: string = 'Haut-Bas-Double';
-  width = 20;
-  height = 20;
+  width = 15;
+  height = 15;
 
     // Fonction pour créer une frame en déplaçant le dégradé vers le bas
     createFrame(frameId: number, width: number, height: number) {
@@ -41,12 +41,13 @@ export class ImageCreatorHautBasDouble extends ImageCreatorAbstract {
     // Génère toutes les frames de l'animation
     generateAnimationFrames(width: number, height: number) {
       const frames = [];
-  
-      for (let i = 0; i < 2*height; i++) {
+
+      // Reduced: height frames instead of 2*height, no reverse (interpolation will fill gaps)
+      for (let i = 0; i < height; i++) {
         const frame = this.createFrame(i, width, height);
         frames.push(frame);
       }
-      for (let i = 2*height-1; i >= 0; i--) {
+      for (let i = height-1; i >= 0; i--) {
         const frame = this.createFrame(i, width, height);
         frames.push(frame);
       }
