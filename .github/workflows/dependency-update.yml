@@ -1,0 +1,43 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # weekly on Monday at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm-check-updates (minor & patch)
+        run: npx -y npm-check-updates --target minor -u
+
+      - name: Install updated dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Create Pull Request with changes
+        if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore(deps): update dependencies"
+          title: "chore(deps): update dependencies (automated)"
+          body: |
+            This PR updates dependencies to the latest minor/patch versions.
+            CI ran tests during the update job; please review and merge if green.
+          labels: dependency, automated-pr
+          base: main
