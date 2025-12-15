@@ -11,9 +11,10 @@
 #include <WiFiMulti.h>
 WiFiMulti wifiMulti;
 
+#include <sdkconfig.h>
 // For ESP32, this better be 0 to shorten the connect time.
-// For ESP32-S2/C3, must be > 500
-#if (USING_ESP32_S2 || USING_ESP32_C3)
+// For ESP32-S2/C3/S3, must be > 500
+#if (USING_ESP32_S2 || USING_ESP32_C3 || USING_ESP32_S3)
 #define WIFI_MULTI_1ST_CONNECT_WAITING_MS 500L
 #else
 // For ESP32 core v1.0.6, must be >= 500
@@ -35,12 +36,14 @@ WiFiMulti wifiMulti;
 // -------------------------------
 // ------ wifi creddentials ------
 // -------------------------------
-typedef struct {
+typedef struct
+{
   char wifi_ssid[SSID_MAX_LEN];
   char wifi_pw[PASS_MAX_LEN];
 } WiFi_Credentials;
 
-typedef struct {
+typedef struct
+{
   String wifi_ssid;
   String wifi_pw;
 } WiFi_Credentials_String;
@@ -54,10 +57,11 @@ typedef struct {
 // -------------------------------
 // ------       config      ------
 // -------------------------------
-typedef struct {
+typedef struct
+{
   WiFi_Credentials WiFi_Creds[NUM_WIFI_CREDENTIALS];
-  char TZ_Name[TZNAME_MAX_LEN];  // "America/Toronto"
-  char TZ[TIMEZONE_MAX_LEN];     // "EST5EDT,M3.2.0,M11.1.0"
+  char TZ_Name[TZNAME_MAX_LEN]; // "America/Toronto"
+  char TZ[TIMEZONE_MAX_LEN];    // "EST5EDT,M3.2.0,M11.1.0"
   uint16_t checksum;
 } WM_Config;
 
@@ -113,10 +117,10 @@ IPAddress APStaticIP = IPAddress(192, 168, 100, 1);
 IPAddress APStaticGW = IPAddress(192, 168, 100, 1);
 IPAddress APStaticSN = IPAddress(255, 255, 255, 0);
 
-#include <ESP_WiFiManager.h>  //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESP_WiFiManager.h> //https://github.com/khoih-prog/ESP_WiFiManager
 
 // SSID and PW for Config Portal
-String ssid = "GARLAND_" + String(ESP_getChipId(), HEX);
+String ssid = "XMASLEDS_" + String(ESP_getChipId(), HEX);
 String password;
 
 // SSID and PW for your Router

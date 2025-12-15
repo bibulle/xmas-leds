@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 0.0.1 (2025-12-11)
 
+### Unreleased
+
+- Upgrade major dependencies: Angular → 21, Nx → 22, TypeScript → 5.9, NestJS → 11, and others.
+- Ran `npx nx migrate` and applied migrations where required.
+- Builds for `api` and `frontend` were verified locally; CI will run full test suite.
+
+
 
 ### Features
 
