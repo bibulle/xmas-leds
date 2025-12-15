@@ -2,7 +2,8 @@
 
 #include "util.h"
 
-//NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+// Use the standard 800Kbps method which is broadly supported.
+// If later we detect issues on S2/S3/C3, switch to an RMT-specific method.
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
 
 File currentProgramFile;
@@ -39,7 +40,8 @@ void showStrip(void)
 void toggleStopAnimation(boolean val)
 {
   stopAnimations = val;
-  if (stopAnimations == false) {
+  if (stopAnimations == false)
+  {
     alreadyStoped = false;
   }
   Serial.printf("toggleStopAnimation stopAnimations: %d\n", stopAnimations);
@@ -74,7 +76,7 @@ void closeCurrentProgramFile()
 {
   if (currentProgramFile)
   {
-    //Serial.println("close Program File");
+    // Serial.println("close Program File");
     currentProgramFile.close();
   }
 }
@@ -83,7 +85,7 @@ void closeCurrentAnimFile()
 {
   if (currentAnimFil)
   {
-    //Serial.println("close Anim File");
+    // Serial.println("close Anim File");
     currentAnimFil.close();
   }
 }
@@ -97,7 +99,8 @@ void updateAnim()
 
   if (stopAnimations)
   {
-    if (!alreadyStoped) {
+    if (!alreadyStoped)
+    {
       setAllPixel(RgbColor(0));
       showStrip();
       closeCurrentAnimFile();
@@ -171,7 +174,7 @@ void updateAnim()
 }
 void startAnim(String path)
 {
-  //Serial.printf("StartAnim '%s'\n", path.c_str());
+  // Serial.printf("StartAnim '%s'\n", path.c_str());
   closeCurrentAnimFile();
   currentAnimFil = LittleFS.open("/animations/" + path + ".bin", "r");
   if (!currentAnimFil.available() || currentAnimFil.isDirectory())
@@ -230,8 +233,8 @@ void startRandomAnim()
 
 void startNextAnim()
 {
-  //Serial.println("startNextAnim");
-  // if needed replay the previous animation
+  // Serial.println("startNextAnim");
+  //  if needed replay the previous animation
   if (currentAnimName && currentAnimeCount > 1)
   {
     currentAnimeCount--;
@@ -248,13 +251,14 @@ void startNextAnim()
     currentProgramFile = LittleFS.open("/animations/program.csv", FILE_READ);
     if (!currentProgramFile || !currentProgramFile.available())
     {
-      if (!noProgramLogged) {
+      if (!noProgramLogged)
+      {
         Serial.println("No program found");
         noProgramLogged = true;
       }
       return;
     }
-    noProgramLogged = false;  // Reset when program is found
+    noProgramLogged = false; // Reset when program is found
     Serial.println("Program loaded");
   }
 
